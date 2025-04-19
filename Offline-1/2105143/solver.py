@@ -12,6 +12,8 @@ class PuzzleState:
         self.f = self.g + self.h
         
     def __lt__(self,other):
+        if(self.f == other.f):
+            return self.h<other.h
         return self.f < other.f
     
     def __hash__(self):
@@ -44,8 +46,8 @@ class PuzzleState:
 def a_star(start_board, goal_board,heuristic_func):
     open_list = []
     closed_set = set()
-    nodes_expanded = 0
-    nodes_explored = 0
+    nodes_expanded = 0 #pop
+    nodes_explored = 0 #push
     
     start = PuzzleState(start_board, 0 , None, heuristic_func, goal_board)
     heapq.heappush(open_list, start)
@@ -66,6 +68,7 @@ def a_star(start_board, goal_board,heuristic_func):
         
         #convert the list into a tuple of tuples
         closed_set.add(tuple(map(tuple, current.board)))
+        
         
         for neighbour in current.get_neighbours():
             if tuple(map(tuple,neighbour)) in closed_set:
