@@ -1,0 +1,4 @@
+Problem,,,Constructive algorithm,,,Local search,,GRASP,,Known best solution or upper bound
+Name,|V| or n,|E| or m,Simple Randomized or Randomized-1,Simple Greedy or Greedy-1,Semi-greedy-1,Simple local or local-1,,GRASP-1,,
+,,,,,,No. of iterations,Average value,No. of iterations,Best value,
+g1,10,20,531.43,1024,1024,5,1024.0,100,1024,1024

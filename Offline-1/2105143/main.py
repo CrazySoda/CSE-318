@@ -1,6 +1,7 @@
 from board_utils import is_solvable, get_goal_board
 from heuristics import manhattan,hamming,euclidean,linear_conflict
 from solver import a_star
+
 def parse_input():
     size = int(input())
     board = [list(map(int , input().split()))for _ in range(size)]

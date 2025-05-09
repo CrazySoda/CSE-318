@@ -4,7 +4,6 @@ from collections import defaultdict
 import numpy as np
 
 from algorithms import (
-    
     randomized_1,
     greedy_1,
     semi_greedy_1,
@@ -12,12 +11,10 @@ from algorithms import (
     grasp_max_cut
 )
 
-from file_input import(
-    read_graphs
-)
+from file_input import read_graphs
 
-def generate_grasp_csv(input_dir="../graph_GRASP/set2", output_file="results.csv", 
-                     alpha=0.5, grasp_iterations=100, random_trials=100,local_search_runs=5):
+def generate_grasp_csv(input_dir="../../graph_GRASP/set2", output_file="results.csv", 
+                     alpha=0.5, grasp_iterations=100, random_trials=100, local_search_runs=5):
     """
     Generates CSV results for all graph files in the input directory
     with the exact specified format.
@@ -57,31 +54,50 @@ def generate_grasp_csv(input_dir="../graph_GRASP/set2", output_file="results.csv
             problem_name = filename.split('.')[0]
             
             try:
-                n, edges, graph = read_graphs(file_path)
+                # Try to read with GPU support first
+                try:
+                    n, edges, graph, adj_matrix = read_graphs(file_path)
+                    use_gpu = True
+                except (ValueError, RuntimeError) as e:
+                    # Fallback to CPU if GPU not available
+                    print(f"GPU read failed for {filename}, falling back to CPU: {str(e)}")
+                    n, edges, graph = read_graphs(file_path)
+                    adj_matrix = None
+                    use_gpu = False
                 
-                # Run all algorithms
+                # Common processing for both GPU and CPU
                 random_avg = randomized_1(random_trials, edges, graph)
-                _, _, greedy_cut = greedy_1(edges, graph)
-                _, _, semi_cut = semi_greedy_1(edges, graph, alpha)
+                
+                # Choose the appropriate function call based on GPU availability
+                greedy_args = (edges, graph, adj_matrix) if use_gpu else (edges, graph)
+                _, _, greedy_cut = greedy_1(*greedy_args)
+                
+                semi_args = (edges, graph, alpha, adj_matrix) if use_gpu else (edges, graph, alpha)
+                _, _, semi_cut = semi_greedy_1(*semi_args)
                 
                 # Local search on semi-greedy solution
                 local_cuts = []
                 for _ in range(local_search_runs):
-                    alpha = np.random.uniform(0, 1)  # Random alpha between 0 and 1
-                    S,S_bar=set(),set()
-                    S,S_bar,_=semi_greedy_1(edges, graph, alpha)
-                    _, _, local_cut = local_search(S,S_bar, edges, graph)
+                    current_alpha = np.random.uniform(0, 1)  # Use different name to avoid shadowing
+                    S, S_bar = set(), set()
+                    
+                    semi_args = (edges, graph, current_alpha, adj_matrix) if use_gpu else (edges, graph, current_alpha)
+                    S, S_bar, _ = semi_greedy_1(*semi_args)
+                    
+                    local_args = (S, S_bar, edges, graph, adj_matrix) if use_gpu else (S, S_bar, edges, graph)
+                    _, _, local_cut = local_search(*local_args)
+                    
                     local_cuts.append(local_cut)
                 
                 avg_local_cut = sum(local_cuts) / len(local_cuts)
                 
                 # GRASP with specified iterations
-                _, _, grasp_cut = grasp_max_cut(edges, graph, alpha, grasp_iterations)
+                grasp_args = (edges, graph, alpha, grasp_iterations, adj_matrix) if use_gpu else (edges, graph, alpha, grasp_iterations)
+                _, _, grasp_cut = grasp_max_cut(*grasp_args)
                 
                 # Known best
                 all_values = [random_avg, greedy_cut, semi_cut, avg_local_cut, grasp_cut]
                 max_value = max(all_values)
-                
                 known_best = max_value
                 
                 # Add row to data
@@ -112,10 +128,9 @@ def generate_grasp_csv(input_dir="../graph_GRASP/set2", output_file="results.csv
     print(f"Results saved to {output_file}")
 
 
-# Example usage:
 if __name__ == "__main__":
     generate_grasp_csv(
-        input_dir="../graph_GRASP/set2",
+        input_dir="../../graph_GRASP/set2",
         output_file="grasp_results.csv",
         alpha=0.5,
         grasp_iterations=100,

@@ -125,21 +125,23 @@ def is_solvable(board):
         row_from_bottom = find_blank_row_from_bottom(board)
         return (inv + row_from_bottom) % 2 == 0
 
-# ------------------- A* Solver ------------------- #
-def a_star(start_board, goal_board, heuristic_func):
+#A* ALgorithm
+
+def a_star(start_board, goal_board,heuristic_func):
     open_list = []
     closed_set = set()
-    nodes_expanded = 0
-    nodes_explored = 0  
-
-    start = PuzzleState(start_board, 0, None, heuristic_func, goal_board)
+    nodes_expanded = 0 #pop
+    nodes_explored = 0 #push
+    
+    start = PuzzleState(start_board, 0 , None, heuristic_func, goal_board)
     heapq.heappush(open_list, start)
-    nodes_explored += 1 
-
+    nodes_explored += 1
+    
     while open_list:
         current = heapq.heappop(open_list)
         nodes_expanded += 1
-
+        
+        #if the current being explored is the goal board
         if current.board == goal_board:
             path = []
             while current:
@@ -147,18 +149,19 @@ def a_star(start_board, goal_board, heuristic_func):
                 current = current.parent
             path.reverse()
             return path, nodes_expanded, nodes_explored
-
+        
+        #convert the list into a tuple of tuples
         closed_set.add(tuple(map(tuple, current.board)))
-
-        for neighbor in current.get_neighbors():
-            if tuple(map(tuple, neighbor)) in closed_set:
+        
+        
+        for neighbour in current.get_neighbours():
+            if tuple(map(tuple,neighbour)) in closed_set:
                 continue
-            neighbor_state = PuzzleState(neighbor, current.g + 1, current, heuristic_func, goal_board)
-            heapq.heappush(open_list, neighbor_state)
-            nodes_explored += 1 
-
+            neighbour_state = PuzzleState(neighbour, current.g + 1, current , heuristic_func, goal_board)
+            heapq.heappush(open_list,neighbour_state)
+            nodes_explored +=1
+            
     return None, nodes_expanded, nodes_explored
-
 
 # ------------------- Input/Run ------------------- #
 def parse_input():
