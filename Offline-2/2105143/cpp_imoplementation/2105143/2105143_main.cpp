@@ -296,7 +296,7 @@ int main()
     const string DIR = "../../graph_GRASP/set1", CSV = "results.csv";
     const int TR = 100, LS = 5;
     const int GR[] = {50,100,200,300};
-    const double A = 0.25;
+    const double A = 0.75;
     vector<pair<int, string>> files;
     for (auto &e : fs::directory_iterator(DIR))
         if (e.is_regular_file())
