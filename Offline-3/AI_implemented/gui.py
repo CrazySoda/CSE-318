@@ -1,12 +1,13 @@
 """
-Enhanced Compact GUI with improved visual design
-Features: Modern colors, compact menus, better spacing, visual polish
+Enhanced Compact GUI with sequential animations
+Features: Modern colors, compact menus, step-by-step chain reactions, AI waits for animations
 """
 
 from __future__ import annotations
-import sys, time, os, pygame, threading, json
+import sys, time, os, pygame, threading, json, math
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional, Dict, Any
+from enum import Enum
 import core
 import ai
 
@@ -53,6 +54,8 @@ COLORS = {
     'highlight': (55, 65, 80),         # Highlight background
     'player1': (255, 100, 120),        # Player 1 red
     'player2': (100, 180, 255),        # Player 2 blue
+    'explosion': (255, 255, 100),      # Explosion color
+    'explosion_inner': (255, 200, 50), # Inner explosion
 }
 
 # Legacy color variables for compatibility
@@ -66,18 +69,74 @@ RED = COLORS['player1']
 BLUE = COLORS['player2']
 YELLOW = COLORS['warning']
 
-EXPLOSION_MS = 200
+# Animation timing constants
+EXPLOSION_DURATION_MS = 400    # How long explosion effect lasts
+ORB_PLACEMENT_DELAY_MS = 150   # Delay between orb placements
+CHAIN_STEP_DELAY_MS = 300      # Delay between chain reaction steps
+PARTICLE_COUNT = 8             # Number of explosion particles
 
 MODE_PVP = "PVP"
 MODE_PVAI = "PVAI"
 MODE_AVAI = "AVAI"
+
+class AnimationType(Enum):
+    EXPLOSION = "explosion"
+    ORB_PLACEMENT = "orb_placement"
+
+@dataclass
+class ExplosionParticle:
+    x: float
+    y: float
+    vel_x: float
+    vel_y: float
+    life: float
+    max_life: float
+    color: Tuple[int, int, int]
 
 @dataclass
 class ExplosionAnim:
     row: int
     col: int
     start_time: int
-    radius: int = field(init=False, default=0)
+    duration: int = EXPLOSION_DURATION_MS
+    particles: List[ExplosionParticle] = field(default_factory=list)
+    
+    def __post_init__(self):
+        # Create explosion particles
+        cx = self.col * CELL_SIZE + CELL_SIZE // 2
+        cy = self.row * CELL_SIZE + CELL_SIZE // 2
+        
+        for i in range(PARTICLE_COUNT):
+            angle = (i / PARTICLE_COUNT) * 2 * math.pi
+            speed = 2 + (i % 3)  # Varied speeds
+            vel_x = math.cos(angle) * speed
+            vel_y = math.sin(angle) * speed
+            
+            life = self.duration / 1000.0  # Convert to seconds
+            color = COLORS['explosion'] if i % 2 == 0 else COLORS['explosion_inner']
+            
+            particle = ExplosionParticle(
+                x=float(cx), y=float(cy), 
+                vel_x=vel_x, vel_y=vel_y,
+                life=life, max_life=life, color=color
+            )
+            self.particles.append(particle)
+
+@dataclass
+class OrbPlacementAnim:
+    row: int
+    col: int
+    player: int
+    start_time: int
+    duration: int = ORB_PLACEMENT_DELAY_MS
+    scale: float = 0.0
+
+@dataclass
+class AnimationStep:
+    step_type: AnimationType
+    data: Any
+    start_time: int
+    completed: bool = False
 
 @dataclass
 class MatchStats:
@@ -95,7 +154,7 @@ class ChainReactionGUI:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Chain Reaction - Enhanced AI")
+        pygame.display.set_caption("Chain Reaction - Sequential Animation")
         self.clock = pygame.time.Clock()
         
         # Compact font system
@@ -108,7 +167,16 @@ class ChainReactionGUI:
         }
 
         self.state = core.GameState(rows=9, cols=6)
+        self.visual_state = core.GameState(rows=9, cols=6)  # What's currently displayed
         self.mode = None
+        
+        # Animation systems - NEW
+        self.explosion_animations: List[ExplosionAnim] = []
+        self.orb_placement_animations: List[OrbPlacementAnim] = []
+        self.animation_queue: List[AnimationStep] = []
+        self.animating = False
+        
+        # Legacy animation list for compatibility
         self.animations: List[ExplosionAnim] = []
         
         # AI Configuration
@@ -767,7 +835,12 @@ class ChainReactionGUI:
     def _reset_board(self):
         """Reset the game board."""
         self.state.reset()
+        self.visual_state.reset()
         self.animations.clear()
+        self.explosion_animations.clear()
+        self.orb_placement_animations.clear()
+        self.animation_queue.clear()
+        self.animating = False
         self.ai_vs_ai_running = False
         
         if self.mode == MODE_PVAI and not os.path.exists(FILE):
@@ -783,12 +856,149 @@ class ChainReactionGUI:
         """Wait for AI move from engine."""
         self.state = _read_until("AI Move:")
 
+    def create_animated_move(self, r: int, c: int) -> bool:
+        """Create animated move sequence instead of instant move."""
+        if self.animating:
+            return False
+        
+        # Clone state to simulate the move
+        temp_state = self.state.clone()
+        try:
+            explosions = temp_state.apply_move(r, c)
+        except ValueError:
+            return False
+        
+        # Create animation sequence
+        now = pygame.time.get_ticks()
+        
+        # Step 1: Initial orb placement
+        placement_data = (r, c, self.state.current_player)
+        self.animation_queue.append(AnimationStep(
+            AnimationType.ORB_PLACEMENT, 
+            placement_data, 
+            now
+        ))
+        
+        # Step 2: Process explosions in sequence
+        if explosions:
+            explosion_delay = ORB_PLACEMENT_DELAY_MS
+            
+            for i, (er, ec) in enumerate(explosions):
+                explosion_time = now + explosion_delay + (i * CHAIN_STEP_DELAY_MS)
+                self.animation_queue.append(AnimationStep(
+                    AnimationType.EXPLOSION,
+                    (er, ec),
+                    explosion_time
+                ))
+        
+        # Apply the actual move to game state (but not visual state yet)
+        self.state.apply_move(r, c)
+        self.animating = True
+        
+        # Also add to legacy animations for compatibility
+        for er, ec in explosions:
+            self.animations.append(ExplosionAnim(er, ec, now))
+        
+        return True
+
+    def update_animations(self):
+        """Update all animation systems."""
+        if not self.animating:
+            return
+        
+        now = pygame.time.get_ticks()
+        
+        # Update explosion particles
+        for explosion in self.explosion_animations[:]:
+            dt = 0.016  # Approximate delta time for 60 FPS
+            
+            for particle in explosion.particles:
+                particle.life -= dt
+                particle.x += particle.vel_x
+                particle.y += particle.vel_y
+                particle.vel_y += 0.1  # Gravity effect
+            
+            # Remove expired explosions
+            if now - explosion.start_time > explosion.duration:
+                self.explosion_animations.remove(explosion)
+        
+        # Update orb placement animations
+        for placement in self.orb_placement_animations[:]:
+            elapsed = now - placement.start_time
+            progress = min(1.0, elapsed / placement.duration)
+            
+            # Bouncy scale animation
+            if progress < 0.7:
+                placement.scale = progress / 0.7 * 1.2  # Scale up to 1.2
+            else:
+                bounce_progress = (progress - 0.7) / 0.3
+                placement.scale = 1.2 - (bounce_progress * 0.2)  # Scale down to 1.0
+            
+            if progress >= 1.0:
+                # Apply the orb to visual state
+                self.visual_state.board[placement.row][placement.col].owner = placement.player
+                self.visual_state.board[placement.row][placement.col].count += 1
+                self.orb_placement_animations.remove(placement)
+        
+        # Process animation queue
+        for step in self.animation_queue[:]:
+            if step.completed:
+                continue
+                
+            if now >= step.start_time:
+                if step.step_type == AnimationType.ORB_PLACEMENT:
+                    r, c, player = step.data
+                    self.orb_placement_animations.append(OrbPlacementAnim(
+                        r, c, player, now, ORB_PLACEMENT_DELAY_MS
+                    ))
+                    step.completed = True
+                    
+                elif step.step_type == AnimationType.EXPLOSION:
+                    r, c = step.data
+                    self.explosion_animations.append(ExplosionAnim(r, c, now))
+                    
+                    # Clear the exploded cell in visual state
+                    self.visual_state.board[r][c].owner = None
+                    self.visual_state.board[r][c].count = 0
+                    
+                    # Add orbs to adjacent cells
+                    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                    for dr, dc in directions:
+                        nr, nc = r + dr, c + dc
+                        if 0 <= nr < 9 and 0 <= nc < 6:
+                            # Schedule orb placement with slight delay
+                            orb_delay = 100  # Small delay for each orb
+                            orb_time = now + orb_delay
+                            self.orb_placement_animations.append(OrbPlacementAnim(
+                                nr, nc, self.state.current_player, orb_time, ORB_PLACEMENT_DELAY_MS
+                            ))
+                    
+                    step.completed = True
+        
+        # Remove completed steps
+        self.animation_queue = [step for step in self.animation_queue if not step.completed]
+        
+        # Check if all animations are complete
+        if (not self.animation_queue and 
+            not self.explosion_animations and 
+            not self.orb_placement_animations):
+            self.animating = False
+            
+            # Sync visual state with actual game state
+            for r in range(9):
+                for c in range(6):
+                    self.visual_state.board[r][c].owner = self.state.board[r][c].owner
+                    self.visual_state.board[r][c].count = self.state.board[r][c].count
+            
+            self.visual_state.current_player = self.state.current_player
+            self.visual_state.game_over = self.state.game_over
+
     def handle_click(self, mx: int, my: int):
         """Handle mouse clicks on the game board."""
-        if self.mode == MODE_AVAI:
+        if self.mode == MODE_AVAI or self.animating:  # Block clicks during animation
             return
             
-        if self.state.game_over or self.animations:
+        if self.state.game_over:
             return
         
         # Only process clicks within the game board area
@@ -797,22 +1007,25 @@ class ChainReactionGUI:
         
         r, c = my // CELL_SIZE, mx // CELL_SIZE
 
-        try:
-            exploded = self.state.apply_move(r, c)
-        except ValueError:
-            return
+        # Use animated move system
+        if self.create_animated_move(r, c):
+            if self.mode == MODE_PVAI and self.state.current_player == 2 and not self.state.game_over:
+                # Wait for animation to complete, then handle AI move
+                threading.Thread(target=self._handle_ai_move_after_animation, daemon=True).start()
 
-        now = pygame.time.get_ticks()
-        for er, ec in exploded:
-            self.animations.append(ExplosionAnim(er, ec, now))
-
-        if self.mode == MODE_PVAI and self.state.current_player == 2 and not self.state.game_over:
+    def _handle_ai_move_after_animation(self):
+        """Handle AI move after human move animation completes."""
+        # Wait for animation to complete
+        while self.animating:
+            time.sleep(0.1)
+        
+        if not self.state.game_over:
             self._write_human_move()
             self._wait_ai()
 
     def update_ai_vs_ai(self):
-        """Update AI vs AI game state."""
-        if not self.ai_vs_ai_running or self.state.game_over or self.animations:
+        """Update AI vs AI game state - waits for animations to complete."""
+        if not self.ai_vs_ai_running or self.state.game_over or self.animating:  # Block AI moves during animation
             return
         
         current_time = time.time()
@@ -823,21 +1036,26 @@ class ChainReactionGUI:
         
         try:
             move = current_agent.choose_move(self.state)
-            exploded = self.state.apply_move(move[0], move[1])
             
-            now = pygame.time.get_ticks()
-            for er, ec in exploded:
-                self.animations.append(ExplosionAnim(er, ec, now))
-            
-            self.match_stats.current_game_moves += 1
-            self.last_ai_move_time = current_time
-            
-            if self.state.game_over:
-                self._handle_ai_game_end()
+            # Use animated move system
+            if self.create_animated_move(move[0], move[1]):
+                self.match_stats.current_game_moves += 1
+                self.last_ai_move_time = current_time
+                
+                if self.state.game_over:
+                    threading.Thread(target=self._handle_ai_game_end_after_animation, daemon=True).start()
             
         except Exception as e:
             print(f"AI Error: {e}")
             self.ai_vs_ai_running = False
+
+    def _handle_ai_game_end_after_animation(self):
+        """Handle AI game end after animation completes."""
+        # Wait for animation to complete
+        while self.animating:
+            time.sleep(0.1)
+        
+        self._handle_ai_game_end()
 
     def _handle_ai_game_end(self):
         """Handle end of AI vs AI game."""
@@ -869,6 +1087,7 @@ class ChainReactionGUI:
         if self.auto_restart:
             time.sleep(2)
             self.state.reset()
+            self.visual_state.reset()
             self.current_game_start_time = time.time()
             self.match_stats.current_game_moves = 0
             self.ai_vs_ai_running = True
@@ -894,12 +1113,13 @@ class ChainReactionGUI:
                 pygame.draw.rect(self.screen, cell_color, cell_rect)
 
     def _draw_orbs(self):
-        """Draw orbs with enhanced visual effects."""
-        offset, rad = CELL_SIZE * 0.22, CELL_SIZE * 0.15
+        """Draw orbs with enhanced visual effects and animations."""
+        offset, base_rad = CELL_SIZE * 0.22, CELL_SIZE * 0.15
         
+        # Draw stable orbs from visual state
         for r in range(9):
             for c in range(6):
-                cell = self.state.board[r][c]
+                cell = self.visual_state.board[r][c]
                 if not cell.owner:
                     continue
                 
@@ -919,13 +1139,54 @@ class ChainReactionGUI:
                         positions.append((cx, cy))
                 
                 for px, py in positions[:cell.count]:
+                    rad = int(base_rad)
                     # Draw shadow
-                    pygame.draw.circle(self.screen, shadow_color, (int(px + 2), int(py + 2)), int(rad))
+                    pygame.draw.circle(self.screen, shadow_color, (int(px + 2), int(py + 2)), rad)
                     # Draw orb
-                    pygame.draw.circle(self.screen, color, (int(px), int(py)), int(rad))
+                    pygame.draw.circle(self.screen, color, (int(px), int(py)), rad)
                     # Draw highlight
                     highlight_color = (min(255, color[0] + 40), min(255, color[1] + 40), min(255, color[2] + 40))
-                    pygame.draw.circle(self.screen, highlight_color, (int(px - rad//3), int(py - rad//3)), int(rad//3))
+                    pygame.draw.circle(self.screen, highlight_color, (int(px - rad//3), int(py - rad//3)), rad//3)
+        
+        # Draw animated orb placements
+        for placement in self.orb_placement_animations:
+            color = COLORS['player1'] if placement.player == 1 else COLORS['player2']
+            cx = placement.col * CELL_SIZE + CELL_SIZE // 2
+            cy = placement.row * CELL_SIZE + CELL_SIZE // 2
+            
+            rad = int(base_rad * placement.scale)
+            if rad > 0:
+                # Animated orb with scaling effect
+                pygame.draw.circle(self.screen, color, (cx, cy), rad)
+                
+                # Glow effect for new orbs
+                for i in range(3):
+                    glow_rad = rad + (i + 1) * 3
+                    glow_intensity = max(0, 100 - i * 30)
+                    if glow_rad > 0:
+                        glow_surf = pygame.Surface((glow_rad * 2, glow_rad * 2), pygame.SRCALPHA)
+                        glow_color = (*color, glow_intensity)
+                        pygame.draw.circle(glow_surf, glow_color, (glow_rad, glow_rad), glow_rad)
+                        self.screen.blit(glow_surf, (cx - glow_rad, cy - glow_rad), special_flags=pygame.BLEND_ALPHA_SDL2)
+
+    def _draw_explosions(self):
+        """Draw explosion effects."""
+        for explosion in self.explosion_animations:
+            for particle in explosion.particles:
+                if particle.life > 0:
+                    # Calculate particle properties based on remaining life
+                    life_ratio = particle.life / particle.max_life
+                    alpha = int(255 * life_ratio)
+                    size = max(1, int(3 * life_ratio))
+                    
+                    # Create particle surface with alpha
+                    particle_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+                    color_with_alpha = (*particle.color, alpha)
+                    pygame.draw.circle(particle_surf, color_with_alpha, (size, size), size)
+                    
+                    # Draw particle
+                    self.screen.blit(particle_surf, (int(particle.x - size), int(particle.y - size)), 
+                                   special_flags=pygame.BLEND_ALPHA_SDL2)
 
     def _draw_ui(self):
         """Draw compact UI."""
@@ -945,6 +1206,8 @@ class ChainReactionGUI:
                 color = COLORS['player1'] if win == 1 else COLORS['player2']
             else:
                 txt, color = "Draw!", COLORS['text_primary']
+        elif self.animating:
+            txt, color = "Animating...", COLORS['warning']
         else:
             if self.mode == MODE_PVP:
                 turn = 'Red' if self.state.current_player == 1 else 'Blue'
@@ -977,6 +1240,8 @@ class ChainReactionGUI:
                 color = COLORS['player1'] if winner == 1 else COLORS['player2']
             else:
                 txt, color = "Draw!", COLORS['text_primary']
+        elif self.animating:
+            txt, color = "Animating...", COLORS['warning']
         elif self.ai_vs_ai_running:
             turn = 'Red' if self.state.current_player == 1 else 'Blue'
             txt = f"{turn}'s turn"
@@ -1010,34 +1275,49 @@ class ChainReactionGUI:
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_c:
-                        if self.mode == MODE_AVAI:
-                            self._ai_vs_ai_config_menu()
-                        else:
-                            self._ai_config_menu()
+                        if not self.animating:  # Don't allow config during animation
+                            if self.mode == MODE_AVAI:
+                                self._ai_vs_ai_config_menu()
+                            else:
+                                self._ai_config_menu()
                     elif event.key == pygame.K_SPACE and self.mode == MODE_AVAI:
                         self.ai_vs_ai_running = not self.ai_vs_ai_running
                         if self.ai_vs_ai_running:
                             self.last_ai_move_time = time.time()
                     elif event.key == pygame.K_r and self.mode == MODE_AVAI:
-                        self.state.reset()
-                        self.match_stats = MatchStats()
-                        self.current_game_start_time = time.time()
-                        self.ai_vs_ai_running = True
+                        if not self.animating:  # Don't allow restart during animation
+                            self.state.reset()
+                            self.visual_state.reset()
+                            self.animations.clear()
+                            self.explosion_animations.clear()
+                            self.orb_placement_animations.clear()
+                            self.animation_queue.clear()
+                            self.animating = False
+                            self.match_stats = MatchStats()
+                            self.current_game_start_time = time.time()
+                            self.ai_vs_ai_running = True
                     elif event.key == pygame.K_ESCAPE:
-                        self._main_menu()
+                        if not self.animating:  # Don't allow menu during animation
+                            self._main_menu()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self.handle_click(*event.pos)
 
             if self.mode == MODE_AVAI:
                 self.update_ai_vs_ai()
 
+            # Update animations
+            self.update_animations()
+
+            # Legacy animation update for compatibility
             now = pygame.time.get_ticks()
             self.animations[:] = [anim for anim in self.animations
-                                 if now - anim.start_time < EXPLOSION_MS]
+                                 if now - anim.start_time < EXPLOSION_DURATION_MS]
 
+            # Rendering
             self.screen.fill(COLORS['bg_primary'])
             self._draw_grid()
             self._draw_orbs()
+            self._draw_explosions()
             self._draw_ui()
             pygame.display.flip()
             self.clock.tick(FPS)

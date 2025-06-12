@@ -27,6 +27,10 @@ CACHE_CLEANUP_THRESHOLD = 8000  # When to start cleaning cache
 USE_MOVE_ORDERING = True       # Set to False to disable move ordering
 USE_ASPIRATION_WINDOWS = True  # Set to False to disable aspiration windows
 
+# Explosion limit settings - NEW
+DEFAULT_EXPLOSION_LIMIT = 50   # Maximum explosions per minimax search
+EXPLOSION_LIMIT_ENABLED = True # Enable/disable explosion limiting
+
 # Timeout settings
 DEFAULT_TIMEOUT = 5.0          # Default timeout in seconds
 MIN_TIMEOUT = 0.1              # Minimum timeout
@@ -261,7 +265,9 @@ class AIConfig:
         }
         self.weights = DEFAULT_WEIGHTS.copy()
         self.depth = DEFAULT_DEPTH
-        self.timeout = DEFAULT_TIMEOUT  # NEW: Timeout in seconds
+        self.timeout = DEFAULT_TIMEOUT
+        self.explosion_limit = DEFAULT_EXPLOSION_LIMIT  # NEW: Explosion limit
+        self.explosion_limit_enabled = EXPLOSION_LIMIT_ENABLED  # NEW: Enable/disable explosion limiting
         self.use_transposition_table = USE_TRANSPOSITION_TABLE
         self.use_move_ordering = USE_MOVE_ORDERING
         self.use_aspiration_windows = USE_ASPIRATION_WINDOWS
@@ -289,6 +295,14 @@ class AIConfig:
         """Set search timeout in seconds."""
         self.timeout = max(MIN_TIMEOUT, timeout)
     
+    def set_explosion_limit(self, limit: int):
+        """Set explosion limit for minimax search."""
+        self.explosion_limit = max(1, limit)
+    
+    def enable_explosion_limiting(self, enabled: bool):
+        """Enable or disable explosion limiting."""
+        self.explosion_limit_enabled = enabled
+    
     def get_active_weights(self) -> Dict[str, float]:
         """Get weights for only enabled heuristics."""
         return {name: weight for name, weight in self.weights.items() 
@@ -308,8 +322,8 @@ class FastGameState:
         self.board_counts = [[cell.count for cell in row] for row in state.board]
         self._move_history = []
     
-    def apply_move_fast(self, r: int, c: int) -> List[Tuple[int, int]]:
-        """Fast move application with undo capability."""
+    def apply_move_fast(self, r: int, c: int, explosion_counter: Optional[List[int]] = None) -> List[Tuple[int, int]]:
+        """Fast move application with undo capability and explosion counting."""
         # Store state for undo
         old_player = self.current_player
         move_info = [(r, c, self.board_owners[r][c], self.board_counts[r][c])]
@@ -342,6 +356,10 @@ class FastGameState:
                 explosions.append((cr, cc))
                 self.board_owners[cr][cc] = None
                 self.board_counts[cr][cc] = 0
+                
+                # Increment explosion counter if provided
+                if explosion_counter is not None:
+                    explosion_counter[0] += 1
                 
                 # Add neighbors to queue
                 for dr, dc in ((-1,0), (1,0), (0,-1), (0,1)):
@@ -401,7 +419,7 @@ class FastGameState:
         return h * 2 + self.current_player
 
 class MinimaxAgent:
-    """Highly optimized Minimax agent with timeout and enhanced caching."""
+    """Highly optimized Minimax agent with timeout and explosion limiting."""
     
     def __init__(self, player: int, config: Optional[AIConfig] = None):
         self.player = player
@@ -413,9 +431,11 @@ class MinimaxAgent:
         self.killer_moves: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
         self.history_heuristic: Dict[Tuple[int, int], int] = defaultdict(int)
         
-        # Timeout management
+        # Timeout and explosion limiting
         self.start_time = 0
         self.timeout_reached = False
+        self.explosion_counter = [0]  # NEW: Use list for mutable reference
+        self.explosion_limit_reached = False  # NEW: Track if explosion limit was reached
         
         # Statistics
         self.nodes_explored = 0
@@ -423,6 +443,9 @@ class MinimaxAgent:
         self.table_hits = 0
         self.killer_cutoffs = 0
         self.cache_cleanups = 0
+        
+        # Move evaluation tracking for local best move selection
+        self.evaluated_moves: List[Tuple[Tuple[int, int], float]] = []  # NEW: (move, score) pairs
         
     def _cleanup_cache(self):
         """Clean up cache keeping local optimas and high-value entries."""
@@ -456,6 +479,23 @@ class MinimaxAgent:
             self.timeout_reached = True
             return True
         return False
+    
+    def _is_explosion_limit_reached(self) -> bool:
+        """Check if explosion limit has been reached."""
+        if not self.config.explosion_limit_enabled:
+            return False
+            
+        if self.explosion_limit_reached:
+            return True
+            
+        if self.explosion_counter[0] >= self.config.explosion_limit:
+            self.explosion_limit_reached = True
+            return True
+        return False
+    
+    def _should_stop_search(self) -> bool:
+        """Check if search should stop due to timeout or explosion limit."""
+        return self._is_timeout() or self._is_explosion_limit_reached()
     
     def evaluate_state_fast(self, fast_state: FastGameState) -> float:
         """Fast state evaluation using optimized heuristics."""
@@ -544,9 +584,9 @@ class MinimaxAgent:
     
     def alpha_beta_optimized(self, fast_state: FastGameState, depth: int, alpha: float, beta: float, 
                            maximizing_player: bool) -> Tuple[float, Optional[Tuple[int, int]]]:
-        """Highly optimized alpha-beta search with timeout."""
-        # Check timeout first
-        if self._is_timeout():
+        """Highly optimized alpha-beta search with timeout and explosion limiting."""
+        # Check termination conditions first
+        if self._should_stop_search():
             return self.evaluate_state_fast(fast_state), None
             
         self.nodes_explored += 1
@@ -584,13 +624,13 @@ class MinimaxAgent:
         if maximizing_player:
             max_eval = -math.inf
             for i, move in enumerate(ordered_moves):
-                if self._is_timeout():  # Check timeout during search
+                if self._should_stop_search():  # Check termination conditions during search
                     break
                     
                 r, c = move
                 
-                # Apply move
-                fast_state.apply_move_fast(r, c)
+                # Apply move with explosion counting
+                fast_state.apply_move_fast(r, c, self.explosion_counter)
                 eval_score, _ = self.alpha_beta_optimized(fast_state, depth - 1, alpha, beta, False)
                 fast_state.undo_move()  # Undo move
                 
@@ -615,7 +655,7 @@ class MinimaxAgent:
                     break
             
             # Store in transposition table with heuristic value for tie-breaking
-            if self.config.use_transposition_table and not self._is_timeout():
+            if self.config.use_transposition_table and not self._should_stop_search():
                 # Clean cache if needed
                 if len(self.transposition_table) >= MAX_TABLE_SIZE:
                     self._cleanup_cache()
@@ -635,13 +675,13 @@ class MinimaxAgent:
         else:  # Minimizing player
             min_eval = math.inf
             for move in ordered_moves:
-                if self._is_timeout():  # Check timeout during search
+                if self._should_stop_search():  # Check termination conditions during search
                     break
                     
                 r, c = move
                 
-                # Apply move
-                fast_state.apply_move_fast(r, c)
+                # Apply move with explosion counting
+                fast_state.apply_move_fast(r, c, self.explosion_counter)
                 eval_score, _ = self.alpha_beta_optimized(fast_state, depth - 1, alpha, beta, True)
                 fast_state.undo_move()  # Undo move
                 
@@ -666,7 +706,7 @@ class MinimaxAgent:
                     break
             
             # Store in transposition table with heuristic value for tie-breaking
-            if self.config.use_transposition_table and not self._is_timeout():
+            if self.config.use_transposition_table and not self._should_stop_search():
                 # Clean cache if needed
                 if len(self.transposition_table) >= MAX_TABLE_SIZE:
                     self._cleanup_cache()
@@ -685,7 +725,7 @@ class MinimaxAgent:
     
     def search_with_aspiration_windows(self, fast_state: FastGameState, depth: int) -> Tuple[float, Optional[Tuple[int, int]]]:
         """Search with aspiration windows for better pruning."""
-        if not self.config.use_aspiration_windows or self._is_timeout():
+        if not self.config.use_aspiration_windows or self._should_stop_search():
             return self.alpha_beta_optimized(fast_state, depth, -math.inf, math.inf, True)
         
         # Initial search with narrow window
@@ -693,7 +733,7 @@ class MinimaxAgent:
         value, move = self.alpha_beta_optimized(fast_state, depth, alpha, beta, True)
         
         # If search failed and we have time, re-search with wider window
-        if not self._is_timeout():
+        if not self._should_stop_search():
             if value <= alpha:
                 value, move = self.alpha_beta_optimized(fast_state, depth, -math.inf, beta, True)
             elif value >= beta:
@@ -701,36 +741,75 @@ class MinimaxAgent:
         
         return value, move
     
+    def _get_best_local_move(self, fast_state: FastGameState) -> Tuple[int, int]:
+        """Get the best move from evaluated moves or quick local evaluation."""
+        # If we have evaluated moves, return the best one
+        if self.evaluated_moves:
+            self.evaluated_moves.sort(key=lambda x: x[1], reverse=True)  # Sort by score descending
+            best_move, best_score = self.evaluated_moves[0]
+            return best_move
+        
+        # Fallback: Quick local evaluation of available moves
+        legal_moves = fast_state.generate_moves_fast(fast_state.current_player)
+        if not legal_moves:
+            raise RuntimeError("No legal moves available")
+        
+        best_move = legal_moves[0]
+        best_score = -math.inf
+        
+        # Quick evaluation of each move (depth 1)
+        for move in legal_moves:
+            r, c = move
+            fast_state.apply_move_fast(r, c, self.explosion_counter)
+            score = self.evaluate_state_fast(fast_state)
+            fast_state.undo_move()
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+        
+        return best_move
+    
     def choose_move(self, state: core.GameState) -> Tuple[int, int]:
-        """Choose the best move using optimized search with timeout."""
-        # Reset statistics and timeout
+        """Choose the best move using optimized search with explosion limiting."""
+        # Reset statistics and limits
         self.nodes_explored = 0
         self.alpha_beta_cutoffs = 0
         self.table_hits = 0
         self.killer_cutoffs = 0
         self.start_time = time.time()
         self.timeout_reached = False
+        self.explosion_counter = [0]  # Reset explosion counter
+        self.explosion_limit_reached = False
+        self.evaluated_moves = []  # Reset evaluated moves
         
         # Convert to fast state
         fast_state = FastGameState(state)
         
-        # Iterative deepening with timeout
+        # Iterative deepening with timeout and explosion limiting
         best_move = None
         last_complete_depth = 0
         
         for d in range(1, self.config.depth + 1):
-            if self._is_timeout():
+            if self._should_stop_search():
                 break
                 
             try:
                 value, move = self.search_with_aspiration_windows(fast_state, d)
-                if move and not self._is_timeout():
+                if move and not self._should_stop_search():
                     best_move = move
                     last_complete_depth = d
+                    # Store this move evaluation
+                    self.evaluated_moves.append((move, value))
                 else:
-                    break  # Timeout reached during this depth
+                    break  # Timeout or explosion limit reached during this depth
             except KeyboardInterrupt:
                 break
+        
+        # If explosion limit was reached, get the best local move
+        if self.explosion_limit_reached and self.config.explosion_limit_enabled:
+            if best_move is None or len(self.evaluated_moves) == 0:
+                best_move = self._get_best_local_move(fast_state)
         
         # Fallback to legal move if no move found
         if best_move is None:
@@ -743,7 +822,7 @@ class MinimaxAgent:
         return best_move
     
     def get_search_statistics(self) -> Dict[str, Any]:
-        """Get comprehensive search statistics."""
+        """Get comprehensive search statistics including explosion data."""
         total_lookups = self.table_hits + max(1, self.nodes_explored - self.table_hits)
         hit_rate = (self.table_hits / total_lookups * 100) if total_lookups > 0 else 0
         
@@ -754,6 +833,11 @@ class MinimaxAgent:
             'search_depth': self.config.depth,
             'timeout_seconds': self.config.timeout,
             'timeout_reached': self.timeout_reached,
+            'explosion_limit': self.config.explosion_limit,
+            'explosion_limit_enabled': self.config.explosion_limit_enabled,
+            'explosions_processed': self.explosion_counter[0],
+            'explosion_limit_reached': self.explosion_limit_reached,
+            'evaluated_moves_count': len(self.evaluated_moves),
             'search_time': time.time() - self.start_time if self.start_time > 0 else 0,
             'table_hits': self.table_hits,
             'hit_rate_percent': hit_rate,
@@ -769,7 +853,7 @@ class MinimaxAgent:
 # PRESET CONFIGURATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def create_aggressive_config(timeout: float = 3.0) -> AIConfig:
+def create_aggressive_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
     """Aggressive AI focusing on immediate threats and chain reactions."""
     config = AIConfig()
     config.weights = {
@@ -781,9 +865,10 @@ def create_aggressive_config(timeout: float = 3.0) -> AIConfig:
         'positional': 0.5
     }
     config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
     return config
 
-def create_defensive_config(timeout: float = 3.0) -> AIConfig:
+def create_defensive_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
     """Defensive AI focusing on territory and material advantage."""
     config = AIConfig()
     config.weights = {
@@ -795,22 +880,25 @@ def create_defensive_config(timeout: float = 3.0) -> AIConfig:
         'positional': 3.0
     }
     config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
     return config
 
-def create_balanced_config(timeout: float = 5.0) -> AIConfig:
+def create_balanced_config(timeout: float = 5.0, explosion_limit: int = 50) -> AIConfig:
     """Balanced AI with default weights."""
     config = AIConfig()
     config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
     return config
 
-def create_fast_config(timeout: float = 1.0) -> AIConfig:
-    """Fast AI for quick responses."""
+def create_fast_config(timeout: float = 1.0, explosion_limit: int = 25) -> AIConfig:
+    """Fast AI for quick responses with lower explosion limit."""
     config = AIConfig()
     config.set_depth(2)
     config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
     return config
 
-def create_material_only_config(timeout: float = 3.0) -> AIConfig:
+def create_material_only_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
     """AI using only material advantage heuristic."""
     config = AIConfig()
     config.enabled_heuristics = {
@@ -822,6 +910,14 @@ def create_material_only_config(timeout: float = 3.0) -> AIConfig:
         'positional': False
     }
     config.weights['material'] = 1.0
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_unlimited_explosions_config(timeout: float = 5.0) -> AIConfig:
+    """AI with explosion limiting disabled."""
+    config = AIConfig()
+    config.enable_explosion_limiting(False)
     config.set_timeout(timeout)
     return config
 
