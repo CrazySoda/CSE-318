@@ -1,0 +1,11 @@
+=== TERRITORIAL CONTROL DEBUG ===
+[OPPONENT] Cell (0,1) | Type: EDGE | Weight: 2 | TotalCells: 1 | TotalWeighted: 2
+[OPPONENT] Cell (0,2) | Type: EDGE | Weight: 2 | TotalCells: 2 | TotalWeighted: 4
+[PLAYER] Cell (0,5) | Type: CORNER | Weight: 3 | TotalCells: 1 | TotalWeighted: 3
+[OPPONENT] Cell (1,0) | Type: EDGE | Weight: 2 | TotalCells: 3 | TotalWeighted: 6
+[OPPONENT] Cell (1,1) | Type: CENTER | Weight: 1 | TotalCells: 4 | TotalWeighted: 7
+[PLAYER] Cell (1,5) | Type: EDGE | Weight: 2 | TotalCells: 2 | TotalWeighted: 5
+[PLAYER] Cell (2,5) | Type: EDGE | Weight: 2 | TotalCells: 3 | TotalWeighted: 7
+[OPPONENT] Cell (8,0) | Type: CORNER | Weight: 3 | TotalCells: 5 | TotalWeighted: 10
+[PLAYER] Cell (8,5) | Type: CORNER | Weight: 3 | TotalCells: 4 | TotalWeighted: 10
+My cells: 4, weighted: 10 | Opp cells: 5, weighted: 10 | Final result: -1

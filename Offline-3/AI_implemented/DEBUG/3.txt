@@ -1,0 +1,11 @@
+=== CRITICAL MASS PROXIMITY DEBUG ===
+[OPPONENT] Cell (0,1) | Type: EDGE | Count: 1 | CritMass: 3 | Proximity: 0.33 | ImmediateThreat: False | ThreatScore: 0 | ProximityScore: 1.67
+[OPPONENT] Cell (0,2) | Type: EDGE | Count: 2 | CritMass: 3 | Proximity: 0.67 | ImmediateThreat: True | ThreatScore: 10 | ProximityScore: 3.33
+[PLAYER] Cell (0,5) | Type: CORNER | Count: 1 | CritMass: 2 | Proximity: 0.50 | ImmediateThreat: True | ThreatScore: 10 | ProximityScore: 2.50
+[OPPONENT] Cell (1,0) | Type: EDGE | Count: 1 | CritMass: 3 | Proximity: 0.33 | ImmediateThreat: False | ThreatScore: 0 | ProximityScore: 1.67
+[OPPONENT] Cell (1,1) | Type: CENTER | Count: 1 | CritMass: 4 | Proximity: 0.25 | ImmediateThreat: False | ThreatScore: 0 | ProximityScore: 1.25
+[PLAYER] Cell (1,5) | Type: EDGE | Count: 2 | CritMass: 3 | Proximity: 0.67 | ImmediateThreat: True | ThreatScore: 10 | ProximityScore: 3.33
+[PLAYER] Cell (2,5) | Type: EDGE | Count: 1 | CritMass: 3 | Proximity: 0.33 | ImmediateThreat: False | ThreatScore: 0 | ProximityScore: 1.67
+[OPPONENT] Cell (8,0) | Type: CORNER | Count: 1 | CritMass: 2 | Proximity: 0.50 | ImmediateThreat: True | ThreatScore: 10 | ProximityScore: 2.50
+[PLAYER] Cell (8,5) | Type: CORNER | Count: 1 | CritMass: 2 | Proximity: 0.50 | ImmediateThreat: True | ThreatScore: 10 | ProximityScore: 2.50
+My threats: 30, near_critical: 10.00 | Opp threats: 20, near_critical: 10.42 | Final result: 9.58

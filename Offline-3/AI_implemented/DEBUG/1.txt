@@ -1,0 +1,11 @@
+=== MATERIAL ADVANTAGE DEBUG ===
+[OPPONENT] Cell (0,1) | Owner: 1 | Count: 1 | CritMass: 3 | ProxBonus: 0.33 | ScoreAdd: 1.33
+[OPPONENT] Cell (0,2) | Owner: 1 | Count: 2 | CritMass: 3 | ProxBonus: 0.67 | ScoreAdd: 3.33
+[PLAYER] Cell (0,5) | Owner: 2 | Count: 1 | CritMass: 2 | ProxBonus: 0.50 | ScoreAdd: 1.50
+[OPPONENT] Cell (1,0) | Owner: 1 | Count: 1 | CritMass: 3 | ProxBonus: 0.33 | ScoreAdd: 1.33
+[OPPONENT] Cell (1,1) | Owner: 1 | Count: 1 | CritMass: 4 | ProxBonus: 0.25 | ScoreAdd: 1.25
+[PLAYER] Cell (1,5) | Owner: 2 | Count: 2 | CritMass: 3 | ProxBonus: 0.67 | ScoreAdd: 3.33
+[PLAYER] Cell (2,5) | Owner: 2 | Count: 1 | CritMass: 3 | ProxBonus: 0.33 | ScoreAdd: 1.33
+[OPPONENT] Cell (8,0) | Owner: 1 | Count: 1 | CritMass: 2 | ProxBonus: 0.50 | ScoreAdd: 1.50
+[PLAYER] Cell (8,5) | Owner: 2 | Count: 1 | CritMass: 2 | ProxBonus: 0.50 | ScoreAdd: 1.50
+Total my_score: 7.666666666666666, opp_score: 8.75, result: -1.083333333333334

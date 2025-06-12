@@ -64,14 +64,20 @@ class GameState:
         # ─────────────────── File-protocol helpers ─────────────────── #
     @staticmethod
     def from_file(lines: list[str]) -> "GameState":
-        """
-        Build a GameState from 9 lines of 6 tokens each (no header).
-        Tokens: 0  or  <n>R / <n>B .
-        """
-        if len(lines) != 9:
-            raise ValueError("File must have exactly 9 board rows.")
-        gs = GameState(rows=9, cols=6)          # protocol is 9×6
-        for r, line in enumerate(lines):
+        """Build a GameState from metadata + 9 lines of 6 tokens each."""
+        if len(lines) != 10:  # Changed from 9 to 10
+            raise ValueError("File must have metadata + 9 board rows.")
+        
+        # Parse metadata
+        turns_played, game_over_int, current_player = map(int, lines[0].split())
+        
+        gs = GameState(rows=9, cols=6)
+        gs.turns_played = turns_played      # Restore persistent data
+        gs.game_over = bool(game_over_int)  # Restore persistent data  
+        gs.current_player = current_player  # Restore persistent data
+        
+        # Parse board (skip first line now)
+        for r, line in enumerate(lines[1:]):
             tokens = line.strip().split()
             if len(tokens) != 6:
                 raise ValueError("Each row must have 6 cells.")
@@ -85,7 +91,7 @@ class GameState:
 
     def to_lines(self) -> list[str]:
         """Return 9 lines of 6 tokens matching the file protocol."""
-        out: list[str] = []
+        out = [f"{self.turns_played} {int(self.game_over)} {self.current_player}"]
         for r in range(9):
             row_tokens = []
             for c in range(6):
@@ -110,8 +116,8 @@ class GameState:
     def apply_move(self, r: int, c: int) -> List[Tuple[int, int]]:
         """
         Perform a click at (r,c) for the current player.
-        Returns a list of (row,col) coordinates that exploded this turn
-        (frontend can animate them). Raises ValueError on illegal moves.
+        Returns a list of (row,col) coordinates that exploded this turn.
+        Raises ValueError on illegal moves.
         """
         if self.game_over:
             raise ValueError("Game already finished")
@@ -126,14 +132,22 @@ class GameState:
         explosions: List[Tuple[int, int]] = []
         self._place_orb(r, c, self.current_player, explosions)
 
-        # Switch player & check victory
+        # Debug state after move
+        #print(f"[DEBUG] Turns played (before increment): {self.turns_played}")
         self.turns_played += 1
+        #print(f"[DEBUG] Turns played (after increment): {self.turns_played}")
+
+        owners = {cell.owner for row in self.board for cell in row if cell.owner}
+        #print(f"[DEBUG] Owners after move: {owners}")
+
         if self.turns_played >= 2 and self._only_one_owner_left():
+            #print("[DEBUG] Only one player left. Game Over!")
             self.game_over = True
-        elif any(any(cell.owner for cell in row) for row in self.board):
+        elif any(owners):
             self.current_player = 3 - self.current_player
 
         return explosions
+
 
     def get_winner(self) -> Optional[int]:
         """Return 1 or 2 if someone has won, else None."""
@@ -160,7 +174,7 @@ class GameState:
             # ────────────────────────────────────────────────────────────────────
 
             cell.add_orb(p)
-            if will_explode and cell.count >= crit:     # ← compare with crit
+            if will_explode and cell.count >= crit:     
                 explosions.append((cr, cc))
                 cell.reset()
                 for nr, nc in self._neighbours(cr, cc):
@@ -169,6 +183,7 @@ class GameState:
 
     def _only_one_owner_left(self) -> bool:
         owners = {cell.owner for row in self.board for cell in row if cell.owner}
+        #print(f"[DEBUG] Owners on board: {owners}")
         return len(owners) == 1
     
         # ─────────────────── Utility for AI ─────────────────── #

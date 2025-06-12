@@ -164,7 +164,7 @@ class ChainReactionGUI:
                 "P - Load preset configuration",
                 "R - Reset to defaults",
                 "T - Test current configuration",
-                "B - Back to main menu"
+                "B - Back"
             ])
             
             # Display configuration

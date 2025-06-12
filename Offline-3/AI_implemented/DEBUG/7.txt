@@ -1,0 +1,8 @@
+=== OVERALL EVALUATION DEBUG ===
+Material: raw=-1.08, weight=2.0, weighted=-2.17
+Territorial: raw=-1.00, weight=1.0, weighted=-1.00
+Critical Mass: raw=9.58, weight=6.0, weighted=57.50
+Mobility: raw=-1.50, weight=1.0, weighted=-1.50
+Chain Potential: raw=5.00, weight=4.0, weighted=20.00
+Positional: raw=-1.50, weight=0.5, weighted=-0.75
+TOTAL EVALUATION SCORE: 72.08

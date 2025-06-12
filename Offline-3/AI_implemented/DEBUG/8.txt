@@ -1,0 +1,7 @@
+=== SEARCH PROGRESS DEBUG ===
+=== DEPTH 1 SEARCH COMPLETED ===
+Best move: (2, 5)
+Evaluation: 0.25
+Time taken: 0.000s
+Nodes explored: 1
+Time remaining: 2.000s

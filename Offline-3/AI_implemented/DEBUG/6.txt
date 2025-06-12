@@ -1,0 +1,11 @@
+=== POSITIONAL ADVANTAGE DEBUG ===
+[OPPONENT] Cell (0,1) | CenterDist: 6 | CenterBonus: 0.00 | ClusterBonus: 2 | ClusterNeighbors: ['(1,1)', '(0,2)'] | TotalPositional: 2.00
+[OPPONENT] Cell (0,2) | CenterDist: 5 | CenterBonus: 0.00 | ClusterBonus: 1 | ClusterNeighbors: ['(0,1)'] | TotalPositional: 1.00
+[PLAYER] Cell (0,5) | CenterDist: 6 | CenterBonus: 0.00 | ClusterBonus: 1 | ClusterNeighbors: ['(1,5)'] | TotalPositional: 1.00
+[OPPONENT] Cell (1,0) | CenterDist: 6 | CenterBonus: 0.00 | ClusterBonus: 1 | ClusterNeighbors: ['(1,1)'] | TotalPositional: 1.00
+[OPPONENT] Cell (1,1) | CenterDist: 5 | CenterBonus: 0.00 | ClusterBonus: 2 | ClusterNeighbors: ['(0,1)', '(1,0)'] | TotalPositional: 2.00
+[PLAYER] Cell (1,5) | CenterDist: 5 | CenterBonus: 0.00 | ClusterBonus: 2 | ClusterNeighbors: ['(0,5)', '(2,5)'] | TotalPositional: 2.00
+[PLAYER] Cell (2,5) | CenterDist: 4 | CenterBonus: 0.50 | ClusterBonus: 1 | ClusterNeighbors: ['(1,5)'] | TotalPositional: 1.50
+[OPPONENT] Cell (8,0) | CenterDist: 7 | CenterBonus: 0.00 | ClusterBonus: 0 | ClusterNeighbors: [] | TotalPositional: 0.00
+[PLAYER] Cell (8,5) | CenterDist: 6 | CenterBonus: 0.00 | ClusterBonus: 0 | ClusterNeighbors: [] | TotalPositional: 0.00
+My positional score: 4.50 | Opp positional score: 6.00 | Final result: -1.50

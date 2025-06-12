@@ -1,0 +1,8 @@
+=== FINAL SEARCH SUMMARY DEBUG ===
+=== SEARCH COMPLETED SUCCESSFULLY ===
+Total search time: 0.693s
+Final depth reached: 1
+Best move: (2, 5)
+Total nodes explored: 262
+Alpha-beta cutoffs: 50
+Table hits: 7

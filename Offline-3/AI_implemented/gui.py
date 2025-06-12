@@ -1,25 +1,14 @@
 """
-gui.py – supports TWO modes:
-
-1. PVP   (two humans on one screen, no file I/O, no engine.py needed)
-2. PVAI  (Human vs AI process via gamestate.txt, as before)
-
-HOW TO RUN
-----------
-Terminal 1 (AI backend, only if you want PVAI):
-    python engine.py
-
-Terminal 2 (GUI):
-    python gui.py
-    → Choose mode with 1 or 2
-    → Press  M  at any time to toggle modes (board resets)
+Enhanced Compact GUI with improved visual design
+Features: Modern colors, compact menus, better spacing, visual polish
 """
 
 from __future__ import annotations
-import sys, time, os, pygame
+import sys, time, os, pygame, threading, json
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict, Any
 import core
+import ai
 
 # ──────────────────────────────────────────────────────────────────────
 # File-protocol helpers (used only in PVAI mode)
@@ -39,18 +28,49 @@ def _read_until(header: str) -> core.GameState:
         time.sleep(0.05)
 
 # ──────────────────────────────────────────────────────────────────────
-# GUI constants
+# Enhanced GUI constants with modern color scheme
 # ──────────────────────────────────────────────────────────────────────
-CELL_SIZE = 100
-WIDTH, HEIGHT = 6 * CELL_SIZE, 9 * CELL_SIZE      # 9×6 protocol board
+CELL_SIZE = 85  # Reduced from 100 to make more compact
+BOARD_WIDTH, BOARD_HEIGHT = 6 * CELL_SIZE, 9 * CELL_SIZE
+UI_HEIGHT = 60  # Space for UI elements at bottom
+WIDTH, HEIGHT = BOARD_WIDTH, BOARD_HEIGHT + UI_HEIGHT
 FPS = 60
-GRAY  = (200, 200, 200)
-BLACK = (25, 25, 25)
-WHITE = (250, 250, 250)
-EXPLOSION_MS = 250
 
-MODE_PVP  = "PVP"
+# Modern color palette
+COLORS = {
+    'bg_primary': (25, 28, 35),        # Dark blue-gray background
+    'bg_secondary': (35, 40, 50),      # Lighter secondary background
+    'bg_menu': (45, 52, 65),           # Menu background
+    'accent': (100, 200, 255),         # Bright blue accent
+    'accent_dark': (80, 160, 220),     # Darker blue
+    'success': (80, 200, 120),         # Green
+    'warning': (255, 180, 80),         # Orange
+    'danger': (255, 100, 100),         # Red
+    'text_primary': (240, 242, 245),   # Light text
+    'text_secondary': (180, 185, 195), # Secondary text
+    'text_muted': (120, 125, 135),     # Muted text
+    'border': (70, 80, 95),            # Border color
+    'highlight': (55, 65, 80),         # Highlight background
+    'player1': (255, 100, 120),        # Player 1 red
+    'player2': (100, 180, 255),        # Player 2 blue
+}
+
+# Legacy color variables for compatibility
+GRAY = COLORS['border']
+BLACK = COLORS['bg_primary']
+WHITE = COLORS['text_primary']
+GREEN = COLORS['success']
+LIGHT_GRAY = COLORS['text_secondary']
+DARK_GRAY = COLORS['bg_secondary']
+RED = COLORS['player1']
+BLUE = COLORS['player2']
+YELLOW = COLORS['warning']
+
+EXPLOSION_MS = 200
+
+MODE_PVP = "PVP"
 MODE_PVAI = "PVAI"
+MODE_AVAI = "AVAI"
 
 @dataclass
 class ExplosionAnim:
@@ -59,70 +79,726 @@ class ExplosionAnim:
     start_time: int
     radius: int = field(init=False, default=0)
 
-# ──────────────────────────────────────────────────────────────────────
-# Main GUI class
-# ──────────────────────────────────────────────────────────────────────
+@dataclass
+class MatchStats:
+    """Statistics for AI vs AI matches."""
+    player1_wins: int = 0
+    player2_wins: int = 0
+    draws: int = 0
+    total_games: int = 0
+    current_game_moves: int = 0
+    avg_moves_per_game: float = 0.0
+    avg_game_duration: float = 0.0
+    last_winner: Optional[int] = None
+
 class ChainReactionGUI:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Chain Reaction")
+        pygame.display.set_caption("Chain Reaction - Enhanced AI")
         self.clock = pygame.time.Clock()
-        self.font  = pygame.font.SysFont("Arial", 28, bold=True)
+        
+        # Compact font system
+        self.fonts = {
+            'title': pygame.font.SysFont("Segoe UI", 22, bold=True),
+            'header': pygame.font.SysFont("Segoe UI", 18, bold=True),
+            'normal': pygame.font.SysFont("Segoe UI", 14),
+            'small': pygame.font.SysFont("Segoe UI", 12),
+            'tiny': pygame.font.SysFont("Segoe UI", 10),
+        }
 
         self.state = core.GameState(rows=9, cols=6)
-        self.mode  = None                 # chosen in self._menu()
+        self.mode = None
         self.animations: List[ExplosionAnim] = []
+        
+        # AI Configuration
+        self.ai_config = ai.AIConfig()
+        
+        # AI vs AI specific
+        self.ai_player1_config = ai.create_balanced_config()
+        self.ai_player2_config = ai.create_aggressive_config()
+        self.ai_agent1: Optional[ai.MinimaxAgent] = None
+        self.ai_agent2: Optional[ai.MinimaxAgent] = None
+        self.ai_vs_ai_running = False
+        self.ai_move_delay = 1.0
+        self.last_ai_move_time = 0
+        self.auto_restart = True
+        self.match_stats = MatchStats()
+        self.current_game_start_time = 0
+        
+        # Available AI presets
+        self.ai_presets = {
+            "Balanced": ai.create_balanced_config,
+            "Aggressive": ai.create_aggressive_config,
+            "Defensive": ai.create_defensive_config,
+            "Material Only": ai.create_material_only_config
+        }
 
-    # ─────────────── Mode selection / toggle ───────────────
-    def _menu(self):
-        """Blocking start screen – user chooses mode."""
+    def draw_rounded_rect(self, surface, color, rect, radius=8):
+        """Draw a rounded rectangle."""
+        x, y, w, h = rect
+        pygame.draw.rect(surface, color, (x + radius, y, w - 2*radius, h))
+        pygame.draw.rect(surface, color, (x, y + radius, w, h - 2*radius))
+        pygame.draw.circle(surface, color, (x + radius, y + radius), radius)
+        pygame.draw.circle(surface, color, (x + w - radius, y + radius), radius)
+        pygame.draw.circle(surface, color, (x + radius, y + h - radius), radius)
+        pygame.draw.circle(surface, color, (x + w - radius, y + h - radius), radius)
+
+    def draw_button(self, surface, text, rect, font_key='normal', selected=False, enabled=True):
+        """Draw a modern button with hover effects."""
+        x, y, w, h = rect
+        
+        # Button colors
+        if not enabled:
+            bg_color = COLORS['bg_secondary']
+            text_color = COLORS['text_muted']
+            border_color = COLORS['border']
+        elif selected:
+            bg_color = COLORS['accent']
+            text_color = COLORS['bg_primary']
+            border_color = COLORS['accent_dark']
+        else:
+            bg_color = COLORS['bg_menu']
+            text_color = COLORS['text_primary']
+            border_color = COLORS['border']
+        
+        # Draw button background
+        self.draw_rounded_rect(surface, bg_color, rect, 6)
+        pygame.draw.rect(surface, border_color, rect, 2, border_radius=6)
+        
+        # Draw text
+        text_surf = self.fonts[font_key].render(text, True, text_color)
+        text_x = x + (w - text_surf.get_width()) // 2
+        text_y = y + (h - text_surf.get_height()) // 2
+        surface.blit(text_surf, (text_x, text_y))
+        
+        return rect
+
+    def draw_panel(self, surface, rect, title=None):
+        """Draw a panel with optional title."""
+        x, y, w, h = rect
+        
+        # Panel background
+        self.draw_rounded_rect(surface, COLORS['bg_menu'], rect, 8)
+        pygame.draw.rect(surface, COLORS['border'], rect, 1, border_radius=8)
+        
+        title_height = 0
+        if title:
+            # Title bar
+            title_rect = (x, y, w, 25)
+            self.draw_rounded_rect(surface, COLORS['accent'], (x, y, w, 25), 8)
+            pygame.draw.rect(surface, COLORS['bg_menu'], (x, y + 15, w, 10))
+            
+            title_surf = self.fonts['header'].render(title, True, COLORS['bg_primary'])
+            title_x = x + 10
+            title_y = y + 3
+            surface.blit(title_surf, (title_x, title_y))
+            title_height = 25
+        
+        return (x + 10, y + title_height + 10, w - 20, h - title_height - 20)
+
+    def _main_menu(self):
+        """Compact main menu with better visual design."""
         choosing = True
+        selected = 0
+        
+        options = [
+            ("1", "Two Players (PVP)", "Play against a friend"),
+            ("2", "Human vs AI (PVAI)", "Challenge the computer"),
+            ("3", "AI vs AI Battle (AVAI)", "Watch AIs compete"),
+            ("4", "Configure AI", "Customize AI behavior"),
+        ]
+        
         while choosing:
-            self.screen.fill((30, 30, 30))
-            title = self.font.render("Choose Game Mode", True, WHITE)
-            pvp   = self.font.render("1  –  Two Players", True, GRAY)
-            pvai  = self.font.render("2  –  Play vs AI",  True, GRAY)
-            self.screen.blit(title, (WIDTH//2 - title.get_width()//2, HEIGHT//3))
-            self.screen.blit(pvp,   (WIDTH//2 - pvp.get_width()//2,   HEIGHT//2))
-            self.screen.blit(pvai,  (WIDTH//2 - pvai.get_width()//2,  HEIGHT//2 + 40))
+            self.screen.fill(COLORS['bg_primary'])
+            
+            # Main panel
+            panel_width = min(300, WIDTH - 40)
+            panel_height = min(400, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "Chain Reaction AI")
+            
+            # Options
+            button_height = 35
+            button_spacing = 5
+            start_y = content_rect[1] + 20
+            
+            for i, (key, title, desc) in enumerate(options):
+                button_rect = (content_rect[0], start_y + i * (button_height + button_spacing), 
+                             content_rect[2], button_height)
+                
+                is_selected = (i == selected)
+                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'normal', is_selected)
+                
+                # Description
+                if desc:
+                    desc_y = button_rect[1] + button_height + 2
+                    desc_surf = self.fonts['small'].render(desc, True, COLORS['text_muted'])
+                    self.screen.blit(desc_surf, (button_rect[0] + 10, desc_y))
+            
+            # Controls hint
+            controls_y = content_rect[1] + content_rect[3] - 40
+            controls_text = "Use 1-4 keys or ESC to quit"
+            controls_surf = self.fonts['small'].render(controls_text, True, COLORS['text_secondary'])
+            controls_x = content_rect[0] + (content_rect[2] - controls_surf.get_width()) // 2
+            self.screen.blit(controls_surf, (controls_x, controls_y))
+            
             pygame.display.flip()
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_1:
-                        self.mode = MODE_PVP;  choosing = False
+                        self.mode = MODE_PVP
+                        choosing = False
                     elif event.key == pygame.K_2:
-                        self.mode = MODE_PVAI; choosing = False
+                        self.mode = MODE_PVAI
+                        choosing = False
+                    elif event.key == pygame.K_3:
+                        self.mode = MODE_AVAI
+                        choosing = False
+                    elif event.key == pygame.K_4:
+                        self._ai_config_menu()
+                    elif event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(options)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected == 0:
+                            self.mode = MODE_PVP
+                            choosing = False
+                        elif selected == 1:
+                            self.mode = MODE_PVAI
+                            choosing = False
+                        elif selected == 2:
+                            self.mode = MODE_AVAI
+                            choosing = False
+                        elif selected == 3:
+                            self._ai_config_menu()
+                    elif event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
         self._reset_board()
 
-    def _toggle_mode(self):
-        self.mode = MODE_PVP if self.mode == MODE_PVAI else MODE_PVAI
-        self._reset_board()
+    def _ai_vs_ai_config_menu(self):
+        """Compact AI vs AI configuration menu."""
+        configuring = True
+        selected_player = 1
+        selected_option = 0
+        
+        options = [
+            ("P", "Load Preset"),
+            ("D", "Change Depth"),
+            ("H", "Toggle Heuristics"),
+            ("S", "Speed Settings"),
+            ("T", "Test Config"),
+            ("R", "Start Match"),
+        ]
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            # Main panel
+            panel_width = min(400, WIDTH - 20)
+            panel_height = min(500, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI vs AI Configuration")
+            
+            # Player selector
+            player_y = content_rect[1]
+            for i, (player_num, color, config) in enumerate([(1, COLORS['player1'], self.ai_player1_config), 
+                                                            (2, COLORS['player2'], self.ai_player2_config)]):
+                button_width = content_rect[2] // 2 - 5
+                button_x = content_rect[0] + i * (button_width + 10)
+                button_rect = (button_x, player_y, button_width, 25)
+                
+                is_selected = (selected_player == player_num)
+                player_text = f"Player {player_num} ({'Red' if player_num == 1 else 'Blue'})"
+                
+                if is_selected:
+                    pygame.draw.rect(self.screen, color, button_rect, border_radius=4)
+                    text_color = COLORS['bg_primary']
+                else:
+                    pygame.draw.rect(self.screen, COLORS['bg_secondary'], button_rect, border_radius=4)
+                    pygame.draw.rect(self.screen, color, button_rect, 2, border_radius=4)
+                    text_color = color
+                
+                text_surf = self.fonts['normal'].render(player_text, True, text_color)
+                text_x = button_x + (button_width - text_surf.get_width()) // 2
+                text_y = player_y + 4
+                self.screen.blit(text_surf, (text_x, text_y))
+            
+            # Current configuration display
+            config_y = player_y + 35
+            current_config = self.ai_player1_config if selected_player == 1 else self.ai_player2_config
+            
+            config_info = [
+                f"Depth: {current_config.depth}",
+                f"Enabled: {len([h for h, e in current_config.enabled_heuristics.items() if e])}/6 heuristics",
+                f"Speed: {self.ai_move_delay:.1f}s delay",
+                f"Auto-restart: {'ON' if self.auto_restart else 'OFF'}"
+            ]
+            
+            for i, info in enumerate(config_info):
+                info_surf = self.fonts['small'].render(info, True, COLORS['text_secondary'])
+                self.screen.blit(info_surf, (content_rect[0], config_y + i * 18))
+            
+            # Options menu
+            options_y = config_y + 80
+            button_height = 25
+            button_spacing = 3
+            
+            for i, (key, title) in enumerate(options):
+                button_rect = (content_rect[0], options_y + i * (button_height + button_spacing), 
+                             content_rect[2], button_height)
+                
+                is_selected = (i == selected_option)
+                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'small', is_selected)
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 30
+            controls = "TAB: Switch Player | ENTER: Select | B: Back"
+            controls_surf = self.fonts['tiny'].render(controls, True, COLORS['text_muted'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
 
-    # ─────────────── Game / file helpers ───────────────
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_TAB:
+                        selected_player = 2 if selected_player == 1 else 1
+                    elif event.key == pygame.K_UP:
+                        selected_option = (selected_option - 1) % len(options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = (selected_option + 1) % len(options)
+                    elif event.key == pygame.K_RETURN:
+                        key, _ = options[selected_option]
+                        if key == "P":
+                            self._preset_menu_for_player(selected_player)
+                        elif key == "D":
+                            self._change_depth_for_player(selected_player)
+                        elif key == "H":
+                            self._toggle_heuristics_for_player(selected_player)
+                        elif key == "S":
+                            self._speed_settings_menu()
+                        elif key == "T":
+                            self._test_ai_vs_ai()
+                        elif key == "R":
+                            configuring = False
+                            self._start_ai_vs_ai()
+                    elif event.key == pygame.K_p:
+                        self._preset_menu_for_player(selected_player)
+                    elif event.key == pygame.K_d:
+                        self._change_depth_for_player(selected_player)
+                    elif event.key == pygame.K_h:
+                        self._toggle_heuristics_for_player(selected_player)
+                    elif event.key == pygame.K_s:
+                        self._speed_settings_menu()
+                    elif event.key == pygame.K_t:
+                        self._test_ai_vs_ai()
+                    elif event.key == pygame.K_r:
+                        configuring = False
+                        self._start_ai_vs_ai()
+                    elif event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
+                        configuring = False
+
+    def _preset_menu_for_player(self, player: int):
+        """Compact preset selection menu."""
+        selecting = True
+        selected = 0
+        preset_names = list(self.ai_presets.keys())
+        
+        descriptions = {
+            "Balanced": "Well-rounded strategy",
+            "Aggressive": "High-risk, high-reward",
+            "Defensive": "Territory focused",
+            "Material Only": "Orb counting only"
+        }
+        
+        while selecting:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(280, WIDTH - 40)
+            panel_height = min(350, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, f"Presets - Player {player}")
+            
+            button_height = 30
+            button_spacing = 5
+            start_y = content_rect[1] + 10
+            
+            for i, preset_name in enumerate(preset_names):
+                button_rect = (content_rect[0], start_y + i * (button_height + button_spacing + 15), 
+                             content_rect[2], button_height)
+                
+                is_selected = (i == selected)
+                self.draw_button(self.screen, preset_name, button_rect, 'normal', is_selected)
+                
+                # Description
+                desc_y = button_rect[1] + button_height + 2
+                desc_surf = self.fonts['small'].render(descriptions.get(preset_name, ""), True, COLORS['text_muted'])
+                self.screen.blit(desc_surf, (button_rect[0] + 5, desc_y))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "↑↓: Select | ENTER: Load | ESC: Cancel"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(preset_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(preset_names)
+                    elif event.key == pygame.K_RETURN:
+                        preset_name = preset_names[selected]
+                        config = self.ai_presets[preset_name]()
+                        if player == 1:
+                            self.ai_player1_config = config
+                        else:
+                            self.ai_player2_config = config
+                        selecting = False
+                    elif event.key == pygame.K_ESCAPE:
+                        selecting = False
+
+    def _change_depth_for_player(self, player: int):
+        """Compact depth adjustment interface."""
+        changing = True
+        config = self.ai_player1_config if player == 1 else self.ai_player2_config
+        
+        while changing:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(250, WIDTH - 40)
+            panel_height = min(200, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, f"Depth - Player {player}")
+            
+            # Current depth display
+            depth_text = f"Current: {config.depth}"
+            depth_surf = self.fonts['title'].render(depth_text, True, COLORS['text_primary'])
+            depth_x = content_rect[0] + (content_rect[2] - depth_surf.get_width()) // 2
+            self.screen.blit(depth_surf, (depth_x, content_rect[1] + 20))
+            
+            # Range info
+            range_text = f"Range: {ai.MIN_DEPTH} - {ai.MAX_DEPTH}"
+            range_surf = self.fonts['small'].render(range_text, True, COLORS['text_secondary'])
+            range_x = content_rect[0] + (content_rect[2] - range_surf.get_width()) // 2
+            self.screen.blit(range_surf, (range_x, content_rect[1] + 50))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 40
+            controls = "← → Adjust | ENTER: Confirm"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
+            controls_x = content_rect[0] + (content_rect[2] - controls_surf.get_width()) // 2
+            self.screen.blit(controls_surf, (controls_x, controls_y))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        config.set_depth(config.depth - 1)
+                    elif event.key == pygame.K_RIGHT:
+                        config.set_depth(config.depth + 1)
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        changing = False
+
+    def _toggle_heuristics_for_player(self, player: int):
+        """Compact heuristics toggle interface."""
+        config = self.ai_player1_config if player == 1 else self.ai_player2_config
+        
+        toggling = True
+        selected = 0
+        heuristic_names = list(config.enabled_heuristics.keys())
+        
+        while toggling:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(350, WIDTH - 20)
+            panel_height = min(400, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, f"Heuristics - Player {player}")
+            
+            # Heuristics list
+            item_height = 20
+            start_y = content_rect[1] + 10
+            
+            for i, heuristic in enumerate(heuristic_names):
+                enabled = config.enabled_heuristics[heuristic]
+                y_pos = start_y + i * item_height
+                
+                # Selection highlight
+                if i == selected:
+                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height)
+                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
+                
+                # Status indicator
+                status_color = COLORS['success'] if enabled else COLORS['text_muted']
+                status_text = "●" if enabled else "○"
+                status_surf = self.fonts['normal'].render(status_text, True, status_color)
+                self.screen.blit(status_surf, (content_rect[0], y_pos))
+                
+                # Heuristic name
+                name_text = heuristic.replace('_', ' ').title()
+                name_color = COLORS['text_primary'] if enabled else COLORS['text_muted']
+                name_surf = self.fonts['normal'].render(name_text, True, name_color)
+                self.screen.blit(name_surf, (content_rect[0] + 25, y_pos))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "↑↓: Select | SPACE: Toggle | ENTER: Done"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(heuristic_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(heuristic_names)
+                    elif event.key == pygame.K_SPACE:
+                        heuristic = heuristic_names[selected]
+                        current = config.enabled_heuristics[heuristic]
+                        config.enabled_heuristics[heuristic] = not current
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        toggling = False
+
+    def _speed_settings_menu(self):
+        """Compact speed settings interface."""
+        configuring = True
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(250, WIDTH - 40)
+            panel_height = min(250, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "Speed Settings")
+            
+            # Move delay
+            delay_text = f"Move Delay: {self.ai_move_delay:.1f}s"
+            delay_surf = self.fonts['normal'].render(delay_text, True, COLORS['text_primary'])
+            self.screen.blit(delay_surf, (content_rect[0], content_rect[1] + 20))
+            
+            # Auto restart
+            restart_text = f"Auto Restart: {'ON' if self.auto_restart else 'OFF'}"
+            restart_surf = self.fonts['normal'].render(restart_text, True, COLORS['text_primary'])
+            self.screen.blit(restart_surf, (content_rect[0], content_rect[1] + 45))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 40
+            controls = ["← → Adjust delay", "A: Toggle restart", "ENTER: Done"]
+            for i, control in enumerate(controls):
+                control_surf = self.fonts['small'].render(control, True, COLORS['text_muted'])
+                self.screen.blit(control_surf, (content_rect[0], controls_y + i * 15))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.ai_move_delay = max(0.1, self.ai_move_delay - 0.1)
+                    elif event.key == pygame.K_RIGHT:
+                        self.ai_move_delay = min(5.0, self.ai_move_delay + 0.1)
+                    elif event.key == pygame.K_a:
+                        self.auto_restart = not self.auto_restart
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        configuring = False
+
+    def _test_ai_vs_ai(self):
+        """Compact test results display."""
+        testing = True
+        
+        # Create test agents
+        agent1 = ai.MinimaxAgent(player=1, config=self.ai_player1_config)
+        agent2 = ai.MinimaxAgent(player=2, config=self.ai_player2_config)
+        
+        # Test on simple scenario
+        test_state = core.GameState(rows=9, cols=6)
+        test_state.board[2][2].owner = 1
+        test_state.board[2][2].count = 2
+        test_state.board[6][4].owner = 2
+        test_state.board[6][4].count = 1
+        test_state.current_player = 1
+        
+        # Get moves from both agents
+        start_time = time.time()
+        move1 = agent1.choose_move(test_state.clone())
+        time1 = time.time() - start_time
+        
+        start_time = time.time()
+        move2 = agent2.choose_move(test_state.clone())
+        time2 = time.time() - start_time
+        
+        stats1 = agent1.get_search_statistics()
+        stats2 = agent2.get_search_statistics()
+        
+        while testing:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(350, WIDTH - 20)
+            panel_height = min(300, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "Test Results")
+            
+            y_pos = content_rect[1] + 10
+            line_height = 18
+            
+            # Player 1 results
+            p1_results = [
+                f"Player 1 (Red): {move1}",
+                f"  Time: {time1:.3f}s | Nodes: {stats1['nodes_explored']}",
+            ]
+            
+            for result in p1_results:
+                color = COLORS['player1'] if result.startswith("Player") else COLORS['text_secondary']
+                result_surf = self.fonts['small'].render(result, True, color)
+                self.screen.blit(result_surf, (content_rect[0], y_pos))
+                y_pos += line_height
+            
+            y_pos += 10
+            
+            # Player 2 results
+            p2_results = [
+                f"Player 2 (Blue): {move2}",
+                f"  Time: {time2:.3f}s | Nodes: {stats2['nodes_explored']}",
+            ]
+            
+            for result in p2_results:
+                color = COLORS['player2'] if result.startswith("Player") else COLORS['text_secondary']
+                result_surf = self.fonts['small'].render(result, True, color)
+                self.screen.blit(result_surf, (content_rect[0], y_pos))
+                y_pos += line_height
+            
+            # Continue prompt
+            continue_y = content_rect[1] + content_rect[3] - 25
+            continue_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
+            continue_x = content_rect[0] + (content_rect[2] - continue_surf.get_width()) // 2
+            self.screen.blit(continue_surf, (continue_x, continue_y))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    testing = False
+
+    def _start_ai_vs_ai(self):
+        """Start AI vs AI match."""
+        self.ai_agent1 = ai.MinimaxAgent(player=1, config=self.ai_player1_config)
+        self.ai_agent2 = ai.MinimaxAgent(player=2, config=self.ai_player2_config)
+        self.ai_vs_ai_running = True
+        self.current_game_start_time = time.time()
+        self.match_stats.current_game_moves = 0
+        print("🤖 AI vs AI match started!")
+
+    def _ai_config_menu(self):
+        """Main AI configuration menu - kept compact."""
+        # This is a simplified version - you can expand it similar to the AI vs AI menu
+        configuring = True
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(300, WIDTH - 40)
+            panel_height = min(200, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Configuration")
+            
+            # Simple configuration display
+            y_pos = content_rect[1] + 20
+            
+            config_text = f"Depth: {self.ai_config.depth}"
+            config_surf = self.fonts['normal'].render(config_text, True, COLORS['text_primary'])
+            self.screen.blit(config_surf, (content_rect[0], y_pos))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "B: Back"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
+                        configuring = False
+
     def _reset_board(self):
+        """Reset the game board."""
         self.state.reset()
         self.animations.clear()
-        # Ensure the file exists for PVAI so engine.py is happy
+        self.ai_vs_ai_running = False
+        
         if self.mode == MODE_PVAI and not os.path.exists(FILE):
             _write_state("AI Move:", self.state)
+        elif self.mode == MODE_AVAI:
+            self._ai_vs_ai_config_menu()
 
     def _write_human_move(self):
+        """Write human move to file for AI engine."""
         _write_state("Human Move:", self.state)
 
     def _wait_ai(self):
+        """Wait for AI move from engine."""
         self.state = _read_until("AI Move:")
 
-    # ─────────────── Event handlers ───────────────
     def handle_click(self, mx: int, my: int):
-        if self.state.game_over or self.animations: return
+        """Handle mouse clicks on the game board."""
+        if self.mode == MODE_AVAI:
+            return
+            
+        if self.state.game_over or self.animations:
+            return
+        
+        # Only process clicks within the game board area
+        if my >= BOARD_HEIGHT:
+            return
+        
         r, c = my // CELL_SIZE, mx // CELL_SIZE
 
         try:
-            exploded = self.state.apply_move(r, c)        # always Red/Blue logic
+            exploded = self.state.apply_move(r, c)
         except ValueError:
             return
 
@@ -130,77 +806,241 @@ class ChainReactionGUI:
         for er, ec in exploded:
             self.animations.append(ExplosionAnim(er, ec, now))
 
-        # If PVAI and Red (human) just moved, hand off to AI
         if self.mode == MODE_PVAI and self.state.current_player == 2 and not self.state.game_over:
             self._write_human_move()
-            self._wait_ai()                               # blocks until file flips
-            # (optional) we could parse AI explosions here for animation
+            self._wait_ai()
 
-    # ─────────────── Draw helpers ───────────────
+    def update_ai_vs_ai(self):
+        """Update AI vs AI game state."""
+        if not self.ai_vs_ai_running or self.state.game_over or self.animations:
+            return
+        
+        current_time = time.time()
+        if current_time - self.last_ai_move_time < self.ai_move_delay:
+            return
+        
+        current_agent = self.ai_agent1 if self.state.current_player == 1 else self.ai_agent2
+        
+        try:
+            move = current_agent.choose_move(self.state)
+            exploded = self.state.apply_move(move[0], move[1])
+            
+            now = pygame.time.get_ticks()
+            for er, ec in exploded:
+                self.animations.append(ExplosionAnim(er, ec, now))
+            
+            self.match_stats.current_game_moves += 1
+            self.last_ai_move_time = current_time
+            
+            if self.state.game_over:
+                self._handle_ai_game_end()
+            
+        except Exception as e:
+            print(f"AI Error: {e}")
+            self.ai_vs_ai_running = False
+
+    def _handle_ai_game_end(self):
+        """Handle end of AI vs AI game."""
+        winner = self.state.get_winner()
+        game_duration = time.time() - self.current_game_start_time
+        
+        self.match_stats.total_games += 1
+        self.match_stats.last_winner = winner
+        
+        if winner == 1:
+            self.match_stats.player1_wins += 1
+        elif winner == 2:
+            self.match_stats.player2_wins += 1
+        else:
+            self.match_stats.draws += 1
+        
+        total_moves = (self.match_stats.avg_moves_per_game * (self.match_stats.total_games - 1) + 
+                      self.match_stats.current_game_moves)
+        self.match_stats.avg_moves_per_game = total_moves / self.match_stats.total_games
+        
+        total_duration = (self.match_stats.avg_game_duration * (self.match_stats.total_games - 1) + 
+                         game_duration)
+        self.match_stats.avg_game_duration = total_duration / self.match_stats.total_games
+        
+        print(f"🏁 Game {self.match_stats.total_games} ended: "
+              f"Winner={'Player ' + str(winner) if winner else 'Draw'} "
+              f"in {self.match_stats.current_game_moves} moves")
+        
+        if self.auto_restart:
+            time.sleep(2)
+            self.state.reset()
+            self.current_game_start_time = time.time()
+            self.match_stats.current_game_moves = 0
+            self.ai_vs_ai_running = True
+        else:
+            self.ai_vs_ai_running = False
+
     def _draw_grid(self):
+        """Draw the game grid with enhanced styling."""
+        # Draw grid lines only in board area
         for r in range(1, 9):
-            pygame.draw.line(self.screen, GRAY, (0, r*CELL_SIZE), (WIDTH, r*CELL_SIZE), 2)
+            pygame.draw.line(self.screen, COLORS['border'], 
+                           (0, r * CELL_SIZE), (BOARD_WIDTH, r * CELL_SIZE), 1)
         for c in range(1, 6):
-            pygame.draw.line(self.screen, GRAY, (c*CELL_SIZE, 0), (c*CELL_SIZE, HEIGHT), 2)
+            pygame.draw.line(self.screen, COLORS['border'], 
+                           (c * CELL_SIZE, 0), (c * CELL_SIZE, BOARD_HEIGHT), 1)
+        
+        # Draw cell backgrounds
+        for r in range(9):
+            for c in range(6):
+                cell_rect = (c * CELL_SIZE + 1, r * CELL_SIZE + 1, 
+                           CELL_SIZE - 2, CELL_SIZE - 2)
+                cell_color = COLORS['bg_secondary'] if (r + c) % 2 == 0 else COLORS['bg_primary']
+                pygame.draw.rect(self.screen, cell_color, cell_rect)
 
     def _draw_orbs(self):
-        offset, rad = CELL_SIZE*0.25, CELL_SIZE*0.18
+        """Draw orbs with enhanced visual effects."""
+        offset, rad = CELL_SIZE * 0.22, CELL_SIZE * 0.15
+        
         for r in range(9):
             for c in range(6):
                 cell = self.state.board[r][c]
-                if not cell.owner: continue
-                color = core.PLAYER_COLOR[cell.owner]
-                cx, cy = c*CELL_SIZE + CELL_SIZE//2, r*CELL_SIZE + CELL_SIZE//2
-                positions: List[Tuple[float, float]] = []
-                if cell.count == 1: positions.append((cx, cy))
-                elif cell.count == 2: positions.extend([(cx-offset, cy), (cx+offset, cy)])
+                if not cell.owner:
+                    continue
+                
+                color = COLORS['player1'] if cell.owner == 1 else COLORS['player2']
+                shadow_color = (color[0] // 3, color[1] // 3, color[2] // 3)
+                
+                cx, cy = c * CELL_SIZE + CELL_SIZE // 2, r * CELL_SIZE + CELL_SIZE // 2
+                positions = []
+                
+                if cell.count == 1:
+                    positions.append((cx, cy))
+                elif cell.count == 2:
+                    positions.extend([(cx - offset, cy), (cx + offset, cy)])
                 else:
-                    positions.extend([(cx-offset, cy-offset), (cx+offset, cy-offset), (cx, cy+offset)])
-                    if cell.count == 4: positions.append((cx, cy))
+                    positions.extend([(cx - offset, cy - offset), (cx + offset, cy - offset), (cx, cy + offset)])
+                    if cell.count == 4:
+                        positions.append((cx, cy))
+                
                 for px, py in positions[:cell.count]:
+                    # Draw shadow
+                    pygame.draw.circle(self.screen, shadow_color, (int(px + 2), int(py + 2)), int(rad))
+                    # Draw orb
                     pygame.draw.circle(self.screen, color, (int(px), int(py)), int(rad))
+                    # Draw highlight
+                    highlight_color = (min(255, color[0] + 40), min(255, color[1] + 40), min(255, color[2] + 40))
+                    pygame.draw.circle(self.screen, highlight_color, (int(px - rad//3), int(py - rad//3)), int(rad//3))
 
     def _draw_ui(self):
+        """Draw compact UI."""
+        if self.mode == MODE_AVAI:
+            self._draw_ai_vs_ai_ui()
+            return
+        
+        # Compact status bar - clearly below game board
+        status_rect = (0, BOARD_HEIGHT, BOARD_WIDTH, UI_HEIGHT)
+        pygame.draw.rect(self.screen, COLORS['bg_menu'], status_rect)
+        pygame.draw.line(self.screen, COLORS['border'], (0, BOARD_HEIGHT), (BOARD_WIDTH, BOARD_HEIGHT), 2)
+        
         if self.state.game_over:
             win = self.state.get_winner()
             if win:
-                txt = f"Player {win} ({'Red' if win==1 else 'Blue'}) wins!"
-                color = core.PLAYER_COLOR[win]
+                txt = f"Player {win} wins!"
+                color = COLORS['player1'] if win == 1 else COLORS['player2']
             else:
-                txt, color = "Game over!", WHITE
+                txt, color = "Draw!", COLORS['text_primary']
         else:
             if self.mode == MODE_PVP:
                 turn = 'Red' if self.state.current_player == 1 else 'Blue'
-                txt = f"PVP  –  {turn}'s turn   (M to switch mode)"
+                txt = f"{turn}'s turn"
             else:
-                txt = "PVAI  –  Your turn (Red)   (M to switch mode)"
-            color = WHITE
-        surf = self.font.render(txt, True, color)
-        self.screen.blit(surf, (10, HEIGHT - 40))
+                txt = "Your turn"
+            color = COLORS['text_primary']
+        
+        status_surf = self.fonts['normal'].render(txt, True, color)
+        self.screen.blit(status_surf, (10, BOARD_HEIGHT + 10))
+        
+        # Controls
+        controls = "ESC-Menu | C-Config"
+        controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
+        controls_x = BOARD_WIDTH - controls_surf.get_width() - 10
+        self.screen.blit(controls_surf, (controls_x, BOARD_HEIGHT + 35))
 
-    # ─────────────── Main loop ───────────────
+    def _draw_ai_vs_ai_ui(self):
+        """Draw compact AI vs AI UI."""
+        # Status bar - clearly below game board
+        status_rect = (0, BOARD_HEIGHT, BOARD_WIDTH, UI_HEIGHT)
+        pygame.draw.rect(self.screen, COLORS['bg_menu'], status_rect)
+        pygame.draw.line(self.screen, COLORS['border'], (0, BOARD_HEIGHT), (BOARD_WIDTH, BOARD_HEIGHT), 2)
+        
+        # Game status
+        if self.state.game_over:
+            winner = self.state.get_winner()
+            if winner:
+                txt = f"Player {winner} wins!"
+                color = COLORS['player1'] if winner == 1 else COLORS['player2']
+            else:
+                txt, color = "Draw!", COLORS['text_primary']
+        elif self.ai_vs_ai_running:
+            turn = 'Red' if self.state.current_player == 1 else 'Blue'
+            txt = f"{turn}'s turn"
+            color = COLORS['player1'] if self.state.current_player == 1 else COLORS['player2']
+        else:
+            txt = "Paused"
+            color = COLORS['warning']
+        
+        status_surf = self.fonts['normal'].render(txt, True, color)
+        self.screen.blit(status_surf, (10, BOARD_HEIGHT + 8))
+        
+        # Compact stats
+        stats_text = f"G:{self.match_stats.total_games} R:{self.match_stats.player1_wins} B:{self.match_stats.player2_wins} M:{self.match_stats.current_game_moves}"
+        stats_surf = self.fonts['small'].render(stats_text, True, COLORS['text_secondary'])
+        self.screen.blit(stats_surf, (10, BOARD_HEIGHT + 32))
+        
+        # Controls
+        controls = "SPACE-Pause | R-Restart | ESC-Menu"
+        controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
+        controls_x = BOARD_WIDTH - controls_surf.get_width() - 10
+        self.screen.blit(controls_surf, (controls_x, BOARD_HEIGHT + 32))
+
     def run(self):
-        self._menu()                                      # choose mode first
+        """Main game loop."""
+        self._main_menu()
+        
         while True:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: pygame.quit(); sys.exit()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_m:
-                    self._toggle_mode()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_c:
+                        if self.mode == MODE_AVAI:
+                            self._ai_vs_ai_config_menu()
+                        else:
+                            self._ai_config_menu()
+                    elif event.key == pygame.K_SPACE and self.mode == MODE_AVAI:
+                        self.ai_vs_ai_running = not self.ai_vs_ai_running
+                        if self.ai_vs_ai_running:
+                            self.last_ai_move_time = time.time()
+                    elif event.key == pygame.K_r and self.mode == MODE_AVAI:
+                        self.state.reset()
+                        self.match_stats = MatchStats()
+                        self.current_game_start_time = time.time()
+                        self.ai_vs_ai_running = True
+                    elif event.key == pygame.K_ESCAPE:
+                        self._main_menu()
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self.handle_click(*event.pos)
 
-            # animations update (simple radial flash)
+            if self.mode == MODE_AVAI:
+                self.update_ai_vs_ai()
+
             now = pygame.time.get_ticks()
             self.animations[:] = [anim for anim in self.animations
-                                   if now - anim.start_time < EXPLOSION_MS]
+                                 if now - anim.start_time < EXPLOSION_MS]
 
-            self.screen.fill(BLACK)
+            self.screen.fill(COLORS['bg_primary'])
             self._draw_grid()
             self._draw_orbs()
             self._draw_ui()
             pygame.display.flip()
             self.clock.tick(FPS)
 
-# ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     ChainReactionGUI().run()

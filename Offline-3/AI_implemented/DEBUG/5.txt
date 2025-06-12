@@ -1,0 +1,19 @@
+=== CHAIN REACTION POTENTIAL DEBUG ===
+[OPPONENT] Cell (0,2) | Type: EDGE | Count: 2 | CritMass: 3 | NeighborCount: 4 | ChainValue: 8
+  -> Neighbor(1,2): count=0, crit=4, score=1
+  -> Neighbor(0,1): count=1, crit=3, score=2
+  -> Neighbor(0,3): count=0, crit=3, score=1
+[PLAYER] Cell (0,5) | Type: CORNER | Count: 1 | CritMass: 2 | NeighborCount: 3 | ChainValue: 3
+  -> Neighbor(1,5): count=2, crit=3, score=2
+  -> Neighbor(0,4): count=0, crit=3, score=1
+[PLAYER] Cell (1,5) | Type: EDGE | Count: 2 | CritMass: 3 | NeighborCount: 5 | ChainValue: 10
+  -> Neighbor(0,5): count=1, crit=2, score=2
+  -> Neighbor(2,5): count=1, crit=3, score=2
+  -> Neighbor(1,4): count=0, crit=4, score=1
+[OPPONENT] Cell (8,0) | Type: CORNER | Count: 1 | CritMass: 2 | NeighborCount: 2 | ChainValue: 2
+  -> Neighbor(7,0): count=0, crit=3, score=1
+  -> Neighbor(8,1): count=0, crit=3, score=1
+[PLAYER] Cell (8,5) | Type: CORNER | Count: 1 | CritMass: 2 | NeighborCount: 2 | ChainValue: 2
+  -> Neighbor(7,5): count=0, crit=3, score=1
+  -> Neighbor(8,4): count=0, crit=3, score=1
+My chain potential: 15 | Opp chain potential: 10 | Final result: 5

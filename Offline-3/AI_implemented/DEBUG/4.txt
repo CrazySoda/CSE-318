@@ -1,0 +1,56 @@
+=== MOBILITY FREEDOM DEBUG ===
+[EMPTY] Cell (0,0) | Available to both players | Weight: 2
+[OPPONENT] Cell (0,1) | Count: 1 | OppMoves: 1 | OppWeighted: 3
+[OPPONENT] Cell (0,2) | Count: 2 | OppMoves: 2 | OppWeighted: 4
+[EMPTY] Cell (0,3) | Available to both players | Weight: 2
+[EMPTY] Cell (0,4) | Available to both players | Weight: 2
+[PLAYER] Cell (0,5) | Count: 1 | PlayerMoves: 1 | PlayerWeighted: 7
+[OPPONENT] Cell (1,0) | Count: 1 | OppMoves: 3 | OppWeighted: 9
+[OPPONENT] Cell (1,1) | Count: 1 | OppMoves: 4 | OppWeighted: 10
+[EMPTY] Cell (1,2) | Available to both players | Weight: 2
+[EMPTY] Cell (1,3) | Available to both players | Weight: 2
+[EMPTY] Cell (1,4) | Available to both players | Weight: 2
+[PLAYER] Cell (1,5) | Count: 2 | PlayerMoves: 2 | PlayerWeighted: 14
+[EMPTY] Cell (2,0) | Available to both players | Weight: 2
+[EMPTY] Cell (2,1) | Available to both players | Weight: 2
+[EMPTY] Cell (2,2) | Available to both players | Weight: 2
+[EMPTY] Cell (2,3) | Available to both players | Weight: 2
+[EMPTY] Cell (2,4) | Available to both players | Weight: 2
+[PLAYER] Cell (2,5) | Count: 1 | PlayerMoves: 3 | PlayerWeighted: 25
+[EMPTY] Cell (3,0) | Available to both players | Weight: 2
+[EMPTY] Cell (3,1) | Available to both players | Weight: 2
+[EMPTY] Cell (3,2) | Available to both players | Weight: 2
+[EMPTY] Cell (3,3) | Available to both players | Weight: 2
+[EMPTY] Cell (3,4) | Available to both players | Weight: 2
+[EMPTY] Cell (3,5) | Available to both players | Weight: 2
+[EMPTY] Cell (4,0) | Available to both players | Weight: 2
+[EMPTY] Cell (4,1) | Available to both players | Weight: 2
+[EMPTY] Cell (4,2) | Available to both players | Weight: 2
+[EMPTY] Cell (4,3) | Available to both players | Weight: 2
+[EMPTY] Cell (4,4) | Available to both players | Weight: 2
+[EMPTY] Cell (4,5) | Available to both players | Weight: 2
+[EMPTY] Cell (5,0) | Available to both players | Weight: 2
+[EMPTY] Cell (5,1) | Available to both players | Weight: 2
+[EMPTY] Cell (5,2) | Available to both players | Weight: 2
+[EMPTY] Cell (5,3) | Available to both players | Weight: 2
+[EMPTY] Cell (5,4) | Available to both players | Weight: 2
+[EMPTY] Cell (5,5) | Available to both players | Weight: 2
+[EMPTY] Cell (6,0) | Available to both players | Weight: 2
+[EMPTY] Cell (6,1) | Available to both players | Weight: 2
+[EMPTY] Cell (6,2) | Available to both players | Weight: 2
+[EMPTY] Cell (6,3) | Available to both players | Weight: 2
+[EMPTY] Cell (6,4) | Available to both players | Weight: 2
+[EMPTY] Cell (6,5) | Available to both players | Weight: 2
+[EMPTY] Cell (7,0) | Available to both players | Weight: 2
+[EMPTY] Cell (7,1) | Available to both players | Weight: 2
+[EMPTY] Cell (7,2) | Available to both players | Weight: 2
+[EMPTY] Cell (7,3) | Available to both players | Weight: 2
+[EMPTY] Cell (7,4) | Available to both players | Weight: 2
+[EMPTY] Cell (7,5) | Available to both players | Weight: 2
+[OPPONENT] Cell (8,0) | Count: 1 | OppMoves: 5 | OppWeighted: 87
+[EMPTY] Cell (8,1) | Available to both players | Weight: 2
+[EMPTY] Cell (8,2) | Available to both players | Weight: 2
+[EMPTY] Cell (8,3) | Available to both players | Weight: 2
+[EMPTY] Cell (8,4) | Available to both players | Weight: 2
+[PLAYER] Cell (8,5) | Count: 1 | PlayerMoves: 4 | PlayerWeighted: 94
+My moves: 4, weighted: 94 | Opp moves: 5, weighted: 95 | Final result: -1.50
