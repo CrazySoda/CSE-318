@@ -1,0 +1,13 @@
+Experiment_Type,Parameter,Config1,Config2,P1_Wins,P2_Wins,Draws,P1_Win_Rate,P2_Win_Rate,Avg_Moves,Avg_Duration,Avg_Nodes_P1,Avg_Nodes_P2,Total_Time
+depth_analysis,depth_2,random,balanced,5,10,0,0.333,0.667,99.0,4.4,1,331,65.4
+depth_analysis,depth_3,random,balanced,6,9,0,0.400,0.600,98.9,3.8,1,290,57.7
+depth_analysis,depth_4,random,balanced,1,14,0,0.067,0.933,99.0,4.2,1,317,62.8
+depth_analysis,depth_5,random,balanced,3,12,0,0.200,0.800,98.1,4.4,1,345,65.6
+timeout_analysis,timeout_1.0,balanced,aggressive,5,5,0,0.500,0.500,85.9,4.1,168,211,41.4
+timeout_analysis,timeout_3.0,balanced,aggressive,5,5,0,0.500,0.500,85.9,4.2,168,211,41.8
+timeout_analysis,timeout_5.0,balanced,aggressive,5,5,0,0.500,0.500,85.9,4.2,168,211,42.1
+timeout_analysis,timeout_10.0,balanced,aggressive,5,5,0,0.500,0.500,85.9,4.2,168,211,41.8
+heuristic_analysis,material_only,random,material_only,1,14,0,0.067,0.933,96.6,2.1,1,299,31.0
+heuristic_analysis,tactical,random,tactical,4,11,0,0.267,0.733,92.3,3.1,1,443,47.1
+heuristic_analysis,defensive,random,defensive,4,11,0,0.267,0.733,99.9,4.4,1,320,65.7
+heuristic_analysis,aggressive,random,aggressive,3,12,0,0.200,0.800,96.5,3.2,1,231,48.3

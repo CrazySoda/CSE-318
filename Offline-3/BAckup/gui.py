@@ -204,15 +204,11 @@ class ChainReactionGUI:
         
         # Available AI presets
         self.ai_presets = {
-        "Balanced": ai.create_balanced_config,
-        "Aggressive": ai.create_aggressive_config,
-        "Defensive": ai.create_defensive_config,
-        "Tactical": ai.create_tactical_config,
-        "Strategic": ai.create_strategic_config,
-        "Fast": ai.create_fast_config,
-        "Material Only": ai.create_material_only_config,
-        "Unlimited Explosions": ai.create_unlimited_explosions_config
-}
+            "Balanced": ai.create_balanced_config,
+            "Aggressive": ai.create_aggressive_config,
+            "Defensive": ai.create_defensive_config,
+            "Material Only": ai.create_material_only_config
+        }
 
     def draw_rounded_rect(self, surface, color, rect, radius=8):
         """Draw a rounded rectangle."""
@@ -446,17 +442,17 @@ class ChainReactionGUI:
         while selecting:
             self.screen.fill(COLORS['bg_primary'])
             
-            panel_width = min(350, WIDTH - 20)
-            panel_height = min(550, HEIGHT - 20)
+            panel_width = min(280, WIDTH - 40)
+            panel_height = min(350, HEIGHT - 40)
             panel_x = (WIDTH - panel_width) // 2
             panel_y = (HEIGHT - panel_height) // 2
             panel_rect = (panel_x, panel_y, panel_width, panel_height)
             content_rect = self.draw_panel(self.screen, panel_rect, f"Presets - Player {player}")
             
-            button_height = 28
-            button_spacing = 3
-            start_y = content_rect[1] + 5
-
+            button_height = 30
+            button_spacing = 5
+            start_y = content_rect[1] + 10
+            
             for i, preset_name in enumerate(preset_names):
                 button_rect = (content_rect[0], start_y + i * (button_height + button_spacing + 15), 
                              content_rect[2], button_height)
@@ -1917,29 +1913,25 @@ class ChainReactionGUI:
         preset_names = list(self.ai_presets.keys())
             
         descriptions = {
-        "Balanced": "Well-rounded strategy",
-        "Aggressive": "High-risk, high-reward", 
-        "Defensive": "Territory focused",
-        "Tactical": "Threat and reaction focused",
-        "Strategic": "Long-term positioning",
-        "Fast": "Quick decisions, lower depth",
-        "Material Only": "Orb counting only",
-        "Unlimited Explosions": "No explosion limits"
-}
+            "Balanced": "Well-rounded strategy",
+            "Aggressive": "High-risk, high-reward",
+            "Defensive": "Territory focused",
+            "Material Only": "Orb counting only"
+        }
             
         while selecting:
             self.screen.fill(COLORS['bg_primary'])
                 
-            panel_width = min(350, WIDTH - 20)
-            panel_height = min(550, HEIGHT - 20)
+            panel_width = min(300, WIDTH - 40)
+            panel_height = min(380, HEIGHT - 40)
             panel_x = (WIDTH - panel_width) // 2
             panel_y = (HEIGHT - panel_height) // 2
             panel_rect = (panel_x, panel_y, panel_width, panel_height)
             content_rect = self.draw_panel(self.screen, panel_rect, "AI Presets")
                 
-            button_height = 28
-            button_spacing = 3
-            start_y = content_rect[1] + 5
+            button_height = 30
+            button_spacing = 5
+            start_y = content_rect[1] + 10
             
             for i, preset_name in enumerate(preset_names):
                 button_rect = (content_rect[0], start_y + i * (button_height + button_spacing + 20), 

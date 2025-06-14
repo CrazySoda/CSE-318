@@ -1,0 +1,7 @@
+Rank,Configuration,Win Rate,Avg Moves,Avg Duration (s)
+1,balanced,0.880,98.4,4.0
+2,aggressive,0.840,97.0,3.6
+3,tactical,0.840,99.0,3.9
+4,defensive,0.800,96.8,4.9
+5,fast,0.760,100.2,2.4
+6,strategic,0.640,97.9,4.8

@@ -5,14 +5,14 @@ import core
 from typing import Tuple, Optional, Dict, Any, List
 from collections import defaultdict
 
-# Updated configuration weights - more balanced
+# Default heuristic weights
 DEFAULT_WEIGHTS = {
-    'material': 2.5,        
-    'territorial': 2.0,     # Reduced slightly
-    'critical_mass': 3.0,   # Reduced significantly from 3.0 
-    'mobility': 1.8,        
-    'chain_potential': 1.5, # Reduced significantly from 2.0
-    'positional': 1.5       # Reduced slightly from 1.8
+    'material': 3.0,        
+    'territorial': 2.0,     
+    'critical_mass': 4.0,   
+    'mobility': 1.5,        
+    'chain_potential': 2.5, 
+    'positional': 1.0       
 }
 
 # Search depth settings
@@ -97,7 +97,7 @@ class Heuristics:
         return result
     
     def territorial_control(self, state: core.GameState, player: int) -> float:
-        """Count controlled cells with CORRECTED positional weighting."""
+        """Count controlled cells with positional weighting - optimized."""
         my_cells = opp_cells = 0
         my_weighted = opp_weighted = 0
         opponent = 3 - player
@@ -106,13 +106,13 @@ class Heuristics:
             for c in range(state.cols):
                 cell = state.board[r][c]
                 if cell.owner:
-                    # FIXED: Higher weight for corners (easier to control), lower for center
+                    # Fast critical mass calculation
                     if (r in (0, state.rows-1)) and (c in (0, state.cols-1)):
-                        cell_weight = 4  # corners are valuable (critical mass = 2)
+                        cell_weight = 3  # corners
                     elif r in (0, state.rows-1) or c in (0, state.cols-1):
-                        cell_weight = 3  # edges are good (critical mass = 3)
+                        cell_weight = 2  # edges
                     else:
-                        cell_weight = 2  # center is hardest to hold (critical mass = 4)
+                        cell_weight = 1  # center
                     
                     if cell.owner == player:
                         my_cells += 1
@@ -121,10 +121,10 @@ class Heuristics:
                         opp_cells += 1
                         opp_weighted += cell_weight
         
-        return (my_weighted - opp_weighted) * 1.5 + (my_cells - opp_cells)
+        return (my_weighted - opp_weighted) * 2 + (my_cells - opp_cells)
     
     def critical_mass_proximity(self, state: core.GameState, player: int) -> float:
-        """Evaluate immediate explosion threats - REBALANCED to prevent dominance."""
+        """Evaluate immediate explosion threats and opportunities - optimized."""
         my_threats = opp_threats = 0
         my_near_critical = opp_near_critical = 0
         opponent = 3 - player
@@ -133,6 +133,7 @@ class Heuristics:
             for c in range(state.cols):
                 cell = state.board[r][c]
                 if cell.owner in (player, opponent):
+                    # Fast critical mass calculation
                     if (r in (0, state.rows-1)) and (c in (0, state.cols-1)):
                         crit_mass = 2
                     elif r in (0, state.rows-1) or c in (0, state.cols-1):
@@ -144,15 +145,14 @@ class Heuristics:
                     
                     if cell.owner == player:
                         if cell.count == crit_mass - 1:
-                            my_threats += 3  # REDUCED from 10 to 3
-                        my_near_critical += proximity * 2  # REDUCED from 5 to 2
+                            my_threats += 10
+                        my_near_critical += proximity * 5
                     else:
                         if cell.count == crit_mass - 1:
-                            opp_threats += 3  # REDUCED from 10 to 3
-                        opp_near_critical += proximity * 2  # REDUCED from 5 to 2
+                            opp_threats += 10
+                        opp_near_critical += proximity * 5
         
         return (my_threats - opp_threats) + (my_near_critical - opp_near_critical)
-
     
     def mobility_freedom(self, state: core.GameState, player: int) -> float:
         """Evaluate move options - simplified for speed."""
@@ -176,7 +176,7 @@ class Heuristics:
         return (my_weighted - opp_weighted) * 0.5 + (my_moves - opp_moves)
     
     def chain_reaction_potential(self, state: core.GameState, player: int) -> float:
-        """REBALANCED chain reaction evaluation."""
+        """Evaluate potential for chain reactions - optimized."""
         my_potential = opp_potential = 0
         opponent = 3 - player
         
@@ -184,6 +184,7 @@ class Heuristics:
             for c in range(state.cols):
                 cell = state.board[r][c]
                 if cell.owner in (player, opponent):
+                    # Fast critical mass
                     if (r in (0, state.rows-1)) and (c in (0, state.cols-1)):
                         crit_mass = 2
                     elif r in (0, state.rows-1) or c in (0, state.cols-1):
@@ -192,11 +193,13 @@ class Heuristics:
                         crit_mass = 4
                     
                     if cell.count >= crit_mass - 1:
+                        # Count adjacent cells quickly
                         neighbor_count = 0
                         for dr, dc in ((-1,0), (1,0), (0,-1), (0,1)):
                             nr, nc = r + dr, c + dc
                             if 0 <= nr < state.rows and 0 <= nc < state.cols:
                                 neighbor = state.board[nr][nc]
+                                # Fast neighbor critical mass
                                 if (nr in (0, state.rows-1)) and (nc in (0, state.cols-1)):
                                     neighbor_crit = 2
                                 elif nr in (0, state.rows-1) or nc in (0, state.cols-1):
@@ -205,11 +208,11 @@ class Heuristics:
                                     neighbor_crit = 4
                                 
                                 if neighbor.count >= neighbor_crit - 2:
-                                    neighbor_count += 1.5  # REDUCED from 2
+                                    neighbor_count += 2
                                 else:
-                                    neighbor_count += 0.8  # REDUCED from 1
+                                    neighbor_count += 1
                         
-                        chain_value = neighbor_count * cell.count * 0.5  # ADDED scaling factor
+                        chain_value = neighbor_count * cell.count
                         if cell.owner == player:
                             my_potential += chain_value
                         else:
@@ -218,32 +221,28 @@ class Heuristics:
         return my_potential - opp_potential
     
     def positional_advantage(self, state: core.GameState, player: int) -> float:
-        """CORRECTED positional evaluation - corners and edges are better."""
+        """Evaluate board position quality - simplified."""
         my_positional = opp_positional = 0
         opponent = 3 - player
+        center_r, center_c = state.rows // 2, state.cols // 2
         
         for r in range(state.rows):
             for c in range(state.cols):
                 cell = state.board[r][c]
                 if cell.owner in (player, opponent):
-                    # FIXED: Corner and edge bonus instead of center bonus
-                    position_bonus = 0
-                    if (r in (0, state.rows-1)) and (c in (0, state.cols-1)):
-                        position_bonus = 3  # corners are strategic
-                    elif r in (0, state.rows-1) or c in (0, state.cols-1):
-                        position_bonus = 2  # edges are good
-                    else:
-                        position_bonus = 1  # center is harder to defend
+                    # Simplified distance calculation
+                    center_distance = abs(r - center_r) + abs(c - center_c)
+                    center_bonus = max(0, 5 - center_distance) * 0.5
                     
-                    # Cluster bonus (unchanged)
+                    # Fast cluster bonus
                     cluster_bonus = 0
                     for dr, dc in ((-1,0), (1,0), (0,-1), (0,1)):
                         nr, nc = r + dr, c + dc
                         if (0 <= nr < state.rows and 0 <= nc < state.cols and 
                             state.board[nr][nc].owner == cell.owner):
-                            cluster_bonus += 0.5  # REDUCED from 1 to 0.5
+                            cluster_bonus += 1
                     
-                    total_positional = position_bonus + cluster_bonus
+                    total_positional = center_bonus + cluster_bonus
                     if cell.owner == player:
                         my_positional += total_positional
                     else:
@@ -879,169 +878,67 @@ class MinimaxAgent:
             'cache_misses': self.heuristics._cache_misses
         }
 
-
-class RandomAgent:
-    """Simple random move agent for baseline comparison."""
-    
-    def __init__(self, player: int):
-        self.player = player
-        self.nodes_explored = 1  # For consistency with MinimaxAgent stats
-        self.search_time = 0
-        
-    def choose_move(self, state: core.GameState) -> Tuple[int, int]:
-        """Choose a random legal move."""
-        import random
-        start_time = time.time()
-        
-        legal_moves = state.generate_moves(self.player)
-        if not legal_moves:
-            raise RuntimeError("No legal moves available")
-        
-        move = random.choice(legal_moves)
-        self.search_time = time.time() - start_time
-        return move
-    
-    def get_search_statistics(self) -> Dict[str, Any]:
-        """Return minimal statistics for compatibility."""
-        return {
-            'nodes_explored': self.nodes_explored,
-            'alpha_beta_cutoffs': 0,
-            'killer_cutoffs': 0,
-            'search_depth': 0,
-            'timeout_seconds': 0,
-            'timeout_reached': False,
-            'explosion_limit': 0,
-            'explosion_limit_enabled': False,
-            'explosions_processed': 0,
-            'explosion_limit_reached': False,
-            'evaluated_moves_count': 1,
-            'search_time': self.search_time,
-            'table_hits': 0,
-            'hit_rate_percent': 0,
-            'cache_cleanups': 0,
-            'table_size': 0,
-            'enabled_heuristics': [],
-            'heuristic_weights': {},
-            'cache_hits': 0,
-            'cache_misses': 0
-        }
-
-
-        # ═══════════════════════════════════════════════════════════════════════════════
-        # PRESET CONFIGURATIONS
-        # ═══════════════════════════════════════════════════════════════════════════════
-        
-def create_balanced_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Balanced AI focusing on a mix of strategies."""
-    config = AIConfig()
-    config.weights = {
-        'material': 2.5,        
-        'territorial': 2.0,     # Reduced slightly
-        'critical_mass': 3.0,   # Reduced significantly from 3.0 
-        'mobility': 1.8,        
-        'chain_potential': 1.5, # Reduced significantly from 2.0
-        'positional': 1.5       # Reduced slightly from 1.8
-    }
-    config.set_timeout(timeout)
-    config.set_explosion_limit(explosion_limit)
-    return config        
+# ═══════════════════════════════════════════════════════════════════════════════
+# PRESET CONFIGURATIONS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def create_aggressive_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Aggressive AI focusing on threats but more balanced."""
+    """Aggressive AI focusing on immediate threats and chain reactions."""
     config = AIConfig()
     config.weights = {
-        'material': 2.0,        
-        'territorial': 1.5,     
-        'critical_mass': 3.0,   # Reduced from 4.0
-        'mobility': 1.8,        
-        'chain_potential': 2.5, # Reduced from 3.5
-        'positional': 1.2       
+        'material': 2.0,
+        'territorial': 1.0,
+        'critical_mass': 6.0,
+        'mobility': 1.0,
+        'chain_potential': 4.0,
+        'positional': 0.5
     }
     config.set_timeout(timeout)
     config.set_explosion_limit(explosion_limit)
     return config
 
 def create_defensive_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Defensive AI focusing on territory but competitive."""
+    """Defensive AI focusing on territory and material advantage."""
     config = AIConfig()
     config.weights = {
-        'material': 3.0,        # Reduced from 3.5
-        'territorial': 3.0,     # Reduced from 4.0
-        'critical_mass': 2.0,   
-        'mobility': 2.2,        # Reduced from 2.5
-        'chain_potential': 1.5, 
-        'positional': 2.5       # Reduced from 3.0
+        'material': 5.0,
+        'territorial': 4.0,
+        'critical_mass': 2.0,
+        'mobility': 2.0,
+        'chain_potential': 1.0,
+        'positional': 3.0
     }
     config.set_timeout(timeout)
     config.set_explosion_limit(explosion_limit)
     return config
 
+def create_balanced_config(timeout: float = 5.0, explosion_limit: int = 50) -> AIConfig:
+    """Balanced AI with default weights."""
+    config = AIConfig()
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
 
 def create_fast_config(timeout: float = 1.0, explosion_limit: int = 25) -> AIConfig:
-    """Fast AI with competitive but quick evaluation."""
+    """Fast AI for quick responses with lower explosion limit."""
     config = AIConfig()
-    config.weights = {
-        'material': 3.0,        # Simple but effective
-        'territorial': 2.0,     # Basic territory
-        'critical_mass': 3.5,   # Key threats
-        'mobility': 1.5,        # Quick decisions
-        'chain_potential': 1.8, # Moderate chains
-        'positional': 1.2       # Basic positioning
-    }
-    config.set_depth(2)  # Faster depth
+    config.set_depth(2)
     config.set_timeout(timeout)
     config.set_explosion_limit(explosion_limit)
     return config
 
 def create_material_only_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Material-focused AI but with some tactical awareness."""
+    """AI using only material advantage heuristic."""
     config = AIConfig()
     config.enabled_heuristics = {
         'material': True,
         'territorial': False,
-        'critical_mass': True,  # Keep some threat awareness
+        'critical_mass': False,
         'mobility': False,
         'chain_potential': False,
         'positional': False
     }
-    config.weights = {
-        'material': 4.0,        # Primary focus
-        'territorial': 0.0,     # Disabled
-        'critical_mass': 2.0,   # Secondary threat awareness
-        'mobility': 0.0,        # Disabled
-        'chain_potential': 0.0, # Disabled
-        'positional': 0.0       # Disabled
-    }
-    config.set_timeout(timeout)
-    config.set_explosion_limit(explosion_limit)
-    return config
-
-def create_tactical_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Tactical AI focusing on threats and reactions."""
-    config = AIConfig()
-    config.weights = {
-        'material': 2.2,        # Increased from 2.0
-        'territorial': 1.8,     # Increased from 1.5
-        'critical_mass': 3.2,   # Reduced from 4.5
-        'mobility': 2.2,        # Reduced from 2.5  
-        'chain_potential': 2.8, # Reduced from 4.0
-        'positional': 1.3       # Increased from 1.0
-    }
-    config.set_timeout(timeout)
-    config.set_explosion_limit(explosion_limit)
-    return config
-
-def create_strategic_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
-    """Strategic AI focusing on long-term positioning."""
-    config = AIConfig()
-    config.weights = {
-        'material': 2.6,        # Reduced from 2.8
-        'territorial': 3.2,     # Reduced from 4.5
-        'critical_mass': 2.2,   
-        'mobility': 2.5,        # Reduced from 3.0
-        'chain_potential': 1.8, 
-        'positional': 2.8       # Reduced from 4.0
-    }
+    config.weights['material'] = 1.0
     config.set_timeout(timeout)
     config.set_explosion_limit(explosion_limit)
     return config
@@ -1052,4 +949,3 @@ def create_unlimited_explosions_config(timeout: float = 5.0) -> AIConfig:
     config.enable_explosion_limiting(False)
     config.set_timeout(timeout)
     return config
-
