@@ -444,7 +444,7 @@ class _GameState:
         for r in range(self.rows):
             for c in range(self.cols):
                 if self.board_owners[r][c]:
-                    h = h * 31 + (r * self.cols + c) * 10 + self.board_counts[r][c] * 2 + self.board_owners[r][c]
+                    h = h * 31 + (r * self.cols + c) * 10 + self.board_counts[r][c] * 2 + self.board_owners[r][c] # type: ignore
         return h * 2 + self.current_player
 
 class MinimaxAgent:
@@ -1055,3 +1055,190 @@ def create_unlimited_explosions_config(timeout: float = 5.0) -> AIConfig:
     config.set_timeout(timeout)
     return config
 
+# SINGLE HEURISTIC CONFIGURATIONS
+
+def create_material_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on material advantage."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': True,
+        'territorial': False,
+        'critical_mass': False,
+        'mobility': False,
+        'chain_potential': False,
+        'positional': False
+    }
+    config.weights = {
+        'material': 5.0,        # Single focus
+        'territorial': 0.0,
+        'critical_mass': 0.0,
+        'mobility': 0.0,
+        'chain_potential': 0.0,
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_territorial_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on territorial control."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': True,
+        'critical_mass': False,
+        'mobility': False,
+        'chain_potential': False,
+        'positional': False
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 5.0,     # Single focus
+        'critical_mass': 0.0,
+        'mobility': 0.0,
+        'chain_potential': 0.0,
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_critical_mass_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on critical mass threats."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': False,
+        'critical_mass': True,
+        'mobility': False,
+        'chain_potential': False,
+        'positional': False
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 0.0,
+        'critical_mass': 5.0,   # Single focus
+        'mobility': 0.0,
+        'chain_potential': 0.0,
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_mobility_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on mobility and move options."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': False,
+        'critical_mass': False,
+        'mobility': True,
+        'chain_potential': False,
+        'positional': False
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 0.0,
+        'critical_mass': 0.0,
+        'mobility': 5.0,        # Single focus
+        'chain_potential': 0.0,
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_chain_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on chain reaction potential."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': False,
+        'critical_mass': False,
+        'mobility': False,
+        'chain_potential': True,
+        'positional': False
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 0.0,
+        'critical_mass': 0.0,
+        'mobility': 0.0,
+        'chain_potential': 5.0, # Single focus
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_positional_focus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing ONLY on positional advantage."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': False,
+        'critical_mass': False,
+        'mobility': False,
+        'chain_potential': False,
+        'positional': True
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 0.0,
+        'critical_mass': 0.0,
+        'mobility': 0.0,
+        'chain_potential': 0.0,
+        'positional': 5.0       # Single focus
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+# HYBRID CONFIGURATIONS (for comparison)
+
+def create_tactical_plus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing on critical mass + chain potential (tactical combo)."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': False,
+        'critical_mass': True,
+        'mobility': False,
+        'chain_potential': True,
+        'positional': False
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 0.0,
+        'critical_mass': 3.0,
+        'mobility': 0.0,
+        'chain_potential': 3.0,
+        'positional': 0.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config
+
+def create_strategic_plus_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
+    """AI focusing on territorial + positional (strategic combo)."""
+    config = AIConfig()
+    config.enabled_heuristics = {
+        'material': False,
+        'territorial': True,
+        'critical_mass': False,
+        'mobility': False,
+        'chain_potential': False,
+        'positional': True
+    }
+    config.weights = {
+        'material': 0.0,
+        'territorial': 3.0,
+        'critical_mass': 0.0,
+        'mobility': 0.0,
+        'chain_potential': 0.0,
+        'positional': 3.0
+    }
+    config.set_timeout(timeout)
+    config.set_explosion_limit(explosion_limit)
+    return config

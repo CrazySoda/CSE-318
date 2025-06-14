@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sys, time, os, pygame, threading, json, math
+import sys, time, os, pygame, threading, json, math # type: ignore
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional, Dict, Any
 from enum import Enum
@@ -737,7 +737,7 @@ class ChainReactionGUI:
                 if event.type == pygame.KEYDOWN:
                     testing = False
 
-    def _ai_config_menu(self):
+    def _ai_config_menu(self): # type: ignore
         configuring = True
         
         while configuring:
@@ -1186,7 +1186,7 @@ class ChainReactionGUI:
         self.visual_state.reset()
         print("🤖 AI vs AI match started!")
 
-    def _write_human_move(self):
+    def _write_human_move(self): # type: ignore
         """Write human move to file for AI engine."""
         _write_state("Human Move:", self.state)
 
@@ -1533,7 +1533,7 @@ class ChainReactionGUI:
         
         return (matching_cells / total_cells) + state_match_bonus
 
-    def _find_ai_move(self, old_state: core.GameState, new_state: core.GameState) -> Optional[Tuple[int, int]]:
+    def _find_ai_move(self, old_state: core.GameState, new_state: core.GameState) -> Optional[Tuple[int, int]]: # type: ignore
         """Find the move made by comparing two game states (legacy method)."""
         return self._find_ai_move_improved(old_state, new_state)
 
@@ -1570,7 +1570,7 @@ class ChainReactionGUI:
         current_agent = self.ai_agent1 if self.state.current_player == 1 else self.ai_agent2
         
         try:
-            move = current_agent.choose_move(self.state)
+            move = current_agent.choose_move(self.state) # type: ignore
             
             # Use animated move system
             if self.create_animated_move(move[0], move[1]):

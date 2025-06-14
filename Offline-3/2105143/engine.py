@@ -18,7 +18,7 @@ def read_file_waiting_for(header: str) -> list[str]:
             return lines[1:]
         time.sleep(0.1)
 
-def write_state_with_move(header: str, state: core.GameState, move: tuple[int, int] = None):
+def write_state_with_move(header: str, state: core.GameState, move: tuple[int, int] = None): # type: ignore
     """Write game state to file with optional move coordinates."""
     data = [header]
     

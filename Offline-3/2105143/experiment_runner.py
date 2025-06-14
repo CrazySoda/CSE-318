@@ -71,6 +71,16 @@ class ExperimentRunner:
             'strategic': ai.create_strategic_config,
             'fast': ai.create_fast_config,
             'material_only': ai.create_material_only_config,
+            # Single heuristic focus configurations
+            'material_focus': ai.create_material_focus_config,
+            'territorial_focus': ai.create_territorial_focus_config,
+            'critical_mass_focus': ai.create_critical_mass_focus_config,
+            'mobility_focus': ai.create_mobility_focus_config,
+            'chain_focus': ai.create_chain_focus_config,
+            'positional_focus': ai.create_positional_focus_config,
+            # Hybrid configurations
+            'tactical_plus': ai.create_tactical_plus_config,
+            'strategic_plus': ai.create_strategic_plus_config,
         }
         
         # Experiment configurations
@@ -141,8 +151,8 @@ class ExperimentRunner:
             return {'type': config_name, 'error': str(e)}
     
     def run_single_experiment(self, config1_name: str, config2_name: str, 
-                             num_games: int = None, depth1: int = None, depth2: int = None,
-                             timeout1: float = None, timeout2: float = None,
+                             num_games: int = None, depth1: int = None, depth2: int = None, # type: ignore
+                             timeout1: float = None, timeout2: float = None, # type: ignore
                              show_gui: bool = False) -> ExperimentResult:
         """Run a single experiment between two configurations."""
         if num_games is None:
@@ -175,14 +185,14 @@ class ExperimentRunner:
         if show_gui:
             # Use GUI for visual experiments
             try:
-                controller = gui.RealtimeGUIBattleController()
+                controller = gui.RealtimeGUIBattleController() # type: ignore
                 controller.auto_advance = True
                 
                 # Set up custom configs
                 if config1_name != 'random':
-                    controller.ai_player1_config = agent1.config
+                    controller.ai_player1_config = agent1.config # type: ignore
                 if config2_name != 'random':
-                    controller.ai_player2_config = agent2.config
+                    controller.ai_player2_config = agent2.config # type: ignore
                 
                 result = controller.battle_configs_realtime(
                     config1_name if config1_name != 'random' else 'balanced',
@@ -442,6 +452,84 @@ class ExperimentRunner:
         
         return task5_results
     
+    def run_heuristic_comparison_experiments(self):
+        """Run comprehensive heuristic comparison experiments."""
+        print("\n" + "="*60)
+        print("HEURISTIC COMPARISON EXPERIMENTS")
+        print("="*60)
+        
+        heuristic_results = []
+        
+        # Single heuristic configurations
+        single_heuristics = [
+            'material_focus',
+            'territorial_focus', 
+            'critical_mass_focus',
+            'mobility_focus',
+            'chain_focus',
+            'positional_focus'
+        ]
+        
+        # 1. Single heuristics vs Random agent
+        print("\n1. Single heuristics vs Random agent:")
+        for heuristic in single_heuristics:
+            result = self.run_single_experiment(
+                'random', heuristic,
+                num_games=20
+            )
+            result.experiment_type = 'heuristic_vs_random'
+            result.parameter_tested = f'{heuristic}_vs_random'
+            heuristic_results.append(result)
+        
+        # 2. Round-robin tournament between single heuristics
+        print("\n2. Single heuristic round-robin tournament:")
+        for i, heuristic1 in enumerate(single_heuristics):
+            for heuristic2 in single_heuristics[i+1:]:
+                result = self.run_single_experiment(
+                    heuristic1, heuristic2,
+                    num_games=15
+                )
+                result.experiment_type = 'heuristic_vs_heuristic'
+                result.parameter_tested = f'{heuristic1}_vs_{heuristic2}'
+                heuristic_results.append(result)
+        
+        # 3. Single heuristics vs hybrid configurations
+        print("\n3. Single heuristics vs hybrid strategies:")
+        hybrid_configs = ['tactical_plus', 'strategic_plus', 'balanced']
+        
+        for heuristic in single_heuristics:
+            for hybrid in hybrid_configs:
+                result = self.run_single_experiment(
+                    heuristic, hybrid,
+                    num_games=12
+                )
+                result.experiment_type = 'heuristic_vs_hybrid'
+                result.parameter_tested = f'{heuristic}_vs_{hybrid}'
+                heuristic_results.append(result)
+        
+        # 4. Depth impact on individual heuristics
+        print("\n4. Depth impact on top-performing heuristics:")
+        # Find top 3 heuristics from vs_random results
+        vs_random_results = [r for r in heuristic_results if r.experiment_type == 'heuristic_vs_random']
+        top_heuristics = sorted(vs_random_results, key=lambda x: x.player2_win_rate, reverse=True)[:3]
+        
+        for result in top_heuristics:
+            heuristic = result.config2_name
+            for depth in [2, 3, 4]:
+                depth_result = self.run_single_experiment(
+                    'random', heuristic,
+                    num_games=8,
+                    depth2=depth
+                )
+                depth_result.experiment_type = 'heuristic_depth_test'
+                depth_result.parameter_tested = f'{heuristic}_depth_{depth}'
+                heuristic_results.append(depth_result)
+        
+        self.save_heuristic_results(heuristic_results)
+        self.generate_heuristic_summary(heuristic_results)
+        
+        return heuristic_results
+    
     def save_task4_results(self, results: List[ExperimentResult]):
         """Save Task 4 results to files."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -515,6 +603,43 @@ class ExperimentRunner:
         print(f"   Detailed: {json_file}")
         print(f"   Summary:  {csv_file}")
     
+    def save_heuristic_results(self, results: List[ExperimentResult]):
+        """Save heuristic comparison results to files."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Save detailed JSON
+        json_file = os.path.join(self.output_dir, f"heuristic_comparison_{timestamp}.json")
+        with open(json_file, 'w') as f:
+            json.dump([asdict(r) for r in results], f, indent=2)
+        
+        # Save summary CSV
+        csv_file = os.path.join(self.output_dir, f"heuristic_comparison_{timestamp}.csv")
+        with open(csv_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'Experiment_Type', 'Parameter', 'Config1', 'Config2',
+                'P1_Wins', 'P2_Wins', 'Draws', 'P1_Win_Rate', 'P2_Win_Rate',
+                'Avg_Moves', 'Avg_Duration', 'Avg_Nodes_P1', 'Avg_Nodes_P2',
+                'Avg_Search_Time_P1', 'Avg_Search_Time_P2', 'Total_Time'
+            ])
+            
+            for r in results:
+                writer.writerow([
+                    r.experiment_type,
+                    r.parameter_tested,
+                    r.config1_name, r.config2_name,
+                    r.player1_wins, r.player2_wins, r.draws,
+                    f"{r.player1_win_rate:.3f}", f"{r.player2_win_rate:.3f}",
+                    f"{r.avg_moves_per_game:.1f}", f"{r.avg_game_duration:.1f}",
+                    f"{r.avg_nodes_explored_p1:.0f}", f"{r.avg_nodes_explored_p2:.0f}",
+                    f"{r.avg_search_time_p1:.3f}", f"{r.avg_search_time_p2:.3f}",
+                    f"{r.total_experiment_time:.1f}"
+                ])
+        
+        print(f"\n📊 Heuristic comparison results saved:")
+        print(f"   Detailed: {json_file}")
+        print(f"   Summary:  {csv_file}")
+    
     def generate_task4_summary(self, results: List[ExperimentResult]):
         """Generate Task 4 analysis summary."""
         print("\n" + "="*60)
@@ -580,6 +705,136 @@ class ExperimentRunner:
                 efficiency = f"{r.avg_moves_per_game:.0f} moves"
                 print(f"{config:12} |  {r.player2_win_rate:6.1%}  |   {r.avg_moves_per_game:6.1f}  | {efficiency}")
     
+    def generate_heuristic_summary(self, results: List[ExperimentResult]):
+        """Generate comprehensive heuristic comparison summary."""
+        print("\n" + "="*70)
+        print("HEURISTIC COMPARISON ANALYSIS SUMMARY")
+        print("="*70)
+        
+        # 1. Performance vs Random
+        vs_random_results = [r for r in results if r.experiment_type == 'heuristic_vs_random']
+        if vs_random_results:
+            print("\n🎯 INDIVIDUAL HEURISTIC PERFORMANCE VS RANDOM:")
+            print("Heuristic         | Win Rate | Avg Moves | Efficiency | Rank")
+            print("-" * 65)
+            sorted_results = sorted(vs_random_results, key=lambda x: x.player2_win_rate, reverse=True)
+            for i, r in enumerate(sorted_results, 1):
+                heuristic = r.config2_name.replace('_focus', '').replace('_', ' ').title()
+                efficiency = "Excellent" if r.player2_win_rate > 0.8 else "Good" if r.player2_win_rate > 0.6 else "Fair"
+                print(f"{heuristic:17} |  {r.player2_win_rate:6.1%}  |   {r.avg_moves_per_game:6.1f}  | {efficiency:10} | #{i}")
+        
+        # 2. Head-to-head comparison matrix
+        heuristic_vs_heuristic = [r for r in results if r.experiment_type == 'heuristic_vs_heuristic']
+        if heuristic_vs_heuristic:
+            print("\n⚔️  HEAD-TO-HEAD HEURISTIC MATCHUPS (Top Battles):")
+            print("Matchup                               | Winner           | Score    | Margin")
+            print("-" * 75)
+            # Sort by win margin to show most decisive battles
+            for r in sorted(heuristic_vs_heuristic, key=lambda x: abs(x.player1_win_rate - x.player2_win_rate), reverse=True)[:8]:
+                h1 = r.config1_name.replace('_focus', '').replace('_', ' ').title()
+                h2 = r.config2_name.replace('_focus', '').replace('_', ' ').title()
+                winner = h1 if r.player1_wins > r.player2_wins else h2 if r.player2_wins > r.player1_wins else "Draw"
+                score = f"{r.player1_wins}-{r.player2_wins}"
+                margin = abs(r.player1_win_rate - r.player2_win_rate)
+                print(f"{h1:12} vs {h2:12} | {winner:16} | {score:8} | {margin:6.1%}")
+        
+        # 3. Performance vs Hybrid strategies
+        vs_hybrid_results = [r for r in results if r.experiment_type == 'heuristic_vs_hybrid']
+        if vs_hybrid_results:
+            print("\n🔬 SINGLE HEURISTICS VS HYBRID STRATEGIES:")
+            
+            # Group by heuristic
+            heuristic_performance = {}
+            for r in vs_hybrid_results:
+                heuristic = r.config1_name
+                if heuristic not in heuristic_performance:
+                    heuristic_performance[heuristic] = []
+                heuristic_performance[heuristic].append({
+                    'opponent': r.config2_name,
+                    'win_rate': r.player1_win_rate,
+                    'avg_moves': r.avg_moves_per_game
+                })
+            
+            print("Heuristic         | vs Tactical+ | vs Strategic+ | vs Balanced | Avg Win Rate")
+            print("-" * 75)
+            
+            for heuristic, matches in heuristic_performance.items():
+                h_name = heuristic.replace('_focus', '').replace('_', ' ').title()
+                tactical_wr = next((m['win_rate'] for m in matches if 'tactical_plus' in m['opponent']), 0)
+                strategic_wr = next((m['win_rate'] for m in matches if 'strategic_plus' in m['opponent']), 0)
+                balanced_wr = next((m['win_rate'] for m in matches if 'balanced' in m['opponent']), 0)
+                avg_wr = sum(m['win_rate'] for m in matches) / len(matches) if matches else 0
+                
+                print(f"{h_name:17} | {tactical_wr:8.1%}     | {strategic_wr:9.1%}     | {balanced_wr:7.1%}     | {avg_wr:8.1%}")
+        
+        # 4. Depth analysis for top heuristics
+        depth_results = [r for r in results if r.experiment_type == 'heuristic_depth_test']
+        if depth_results:
+            print("\n📈 DEPTH IMPACT ON TOP HEURISTICS:")
+            print("Heuristic         | Depth 2 | Depth 3 | Depth 4 | Best Depth")
+            print("-" * 65)
+            
+            # Group by heuristic
+            depth_performance = {}
+            for r in depth_results:
+                heuristic = r.config2_name
+                depth = int(r.parameter_tested.split('_depth_')[1])
+                if heuristic not in depth_performance:
+                    depth_performance[heuristic] = {}
+                depth_performance[heuristic][depth] = r.player2_win_rate
+            
+            for heuristic, depths in depth_performance.items():
+                h_name = heuristic.replace('_focus', '').replace('_', ' ').title()
+                d2 = depths.get(2, 0)
+                d3 = depths.get(3, 0)
+                d4 = depths.get(4, 0)
+                best_depth = max(depths.keys(), key=lambda k: depths[k]) if depths else 3
+                
+                print(f"{h_name:17} | {d2:6.1%}  | {d3:6.1%}  | {d4:6.1%}  | Depth {best_depth}")
+        
+        # 5. Overall heuristic rankings
+        if vs_random_results:
+            print("\n🏆 OVERALL HEURISTIC EFFECTIVENESS RANKING:")
+            print("Rank | Heuristic         | Win Rate | Strength Assessment")
+            print("-" * 65)
+            
+            ranked_heuristics = sorted(vs_random_results, key=lambda x: x.player2_win_rate, reverse=True)
+            for i, r in enumerate(ranked_heuristics, 1):
+                heuristic = r.config2_name.replace('_focus', '').replace('_', ' ').title()
+                win_rate = r.player2_win_rate
+                
+                if win_rate > 0.85:
+                    strength = "Dominant"
+                elif win_rate > 0.75:
+                    strength = "Strong"
+                elif win_rate > 0.65:
+                    strength = "Effective"
+                elif win_rate > 0.55:
+                    strength = "Moderate"
+                else:
+                    strength = "Weak"
+                
+                print(f" {i:2d}  | {heuristic:17} | {win_rate:6.1%}   | {strength}")
+        
+        # 6. Strategic insights
+        if vs_random_results:
+            best_heuristic = max(vs_random_results, key=lambda x: x.player2_win_rate)
+            worst_heuristic = min(vs_random_results, key=lambda x: x.player2_win_rate)
+            
+            print(f"\n💡 KEY INSIGHTS:")
+            print(f"   🥇 Most Effective: {best_heuristic.config2_name.replace('_focus', '').replace('_', ' ').title()}")
+            print(f"      Win Rate: {best_heuristic.player2_win_rate:.1%}, Avg Moves: {best_heuristic.avg_moves_per_game:.1f}")
+            print(f"   🥉 Least Effective: {worst_heuristic.config2_name.replace('_focus', '').replace('_', ' ').title()}")
+            print(f"      Win Rate: {worst_heuristic.player2_win_rate:.1%}, Avg Moves: {worst_heuristic.avg_moves_per_game:.1f}")
+            
+            performance_gap = best_heuristic.player2_win_rate - worst_heuristic.player2_win_rate
+            print(f"   📊 Performance Gap: {performance_gap:.1%}")
+            
+            if performance_gap > 0.3:
+                print("   🔍 Analysis: Significant variation in heuristic effectiveness detected!")
+            else:
+                print("   🔍 Analysis: Heuristics show relatively balanced performance.")
+    
     def run_interactive_experiment(self):
         """Run a single interactive experiment with GUI."""
         print("\n🎮 INTERACTIVE EXPERIMENT MODE")
@@ -622,13 +877,14 @@ def main():
         print(f"\nExperiment Options:")
         print("1. Run Task 4 Experiments (Depth & Time Analysis)")
         print("2. Run Task 5 Experiments (AI vs AI Tournament)")
-        print("3. Run Both Tasks (Full Experiment Suite)")
-        print("4. Interactive Single Experiment")
-        print("5. Quick Demo (3 games with GUI)")
+        print("3. Run Heuristic Comparison Experiments (NEW!)")
+        print("4. Run Both Tasks (Full Experiment Suite)")
+        print("5. Interactive Single Experiment")
+        print("6. Quick Demo (3 games with GUI)")
         print("0. Exit")
         
         try:
-            choice = input("\nEnter choice (0-5): ").strip()
+            choice = input("\nEnter choice (0-6): ").strip()
         except KeyboardInterrupt:
             print("\nExiting...")
             break
@@ -659,6 +915,17 @@ def main():
                     print(f"\n❌ Task 5 experiments failed: {e}")
         
         elif choice == "3":
+            print("\n🧠 Starting Heuristic Comparison Experiments...")
+            print("This will compare individual heuristics head-to-head.")
+            confirm = input("This may take 45-75 minutes. Continue? (y/n): ").strip().lower()
+            if confirm == 'y':
+                try:
+                    runner.run_heuristic_comparison_experiments()
+                    print("\n✅ Heuristic comparison experiments complete!")
+                except Exception as e:
+                    print(f"\n❌ Heuristic comparison experiments failed: {e}")
+        
+        elif choice == "4":
             print("\n🚀 Starting Full Experiment Suite...")
             confirm = input("This may take 60-90 minutes. Continue? (y/n): ").strip().lower()
             if confirm == 'y':
@@ -669,13 +936,13 @@ def main():
                 except Exception as e:
                     print(f"\n❌ Experiments failed: {e}")
         
-        elif choice == "4":
+        elif choice == "5":
             try:
                 runner.run_interactive_experiment()
             except Exception as e:
                 print(f"\n❌ Interactive experiment failed: {e}")
         
-        elif choice == "5":
+        elif choice == "6":
             print("\n🎮 Quick Demo: Balanced vs Aggressive")
             try:
                 result = runner.run_single_experiment('balanced', 'aggressive', 3, show_gui=True)
