@@ -1,0 +1,7 @@
+Rank,Configuration,Score,Performance
+1,balanced,87.0,Good
+2,aggressive,85.0,Good
+3,defensive,83.0,Good
+4,tactical,82.0,Good
+5,fast,71.0,Fair
+6,strategic,70.0,Poor

@@ -1,0 +1,5 @@
+Rank,Heuristic,Win Rate,Avg Moves,Avg Duration (s)
+1,defensive,0.933,99.5,4.6
+2,material_only,0.800,99.1,2.3
+3,tactical,0.800,99.4,3.5
+4,aggressive,0.800,98.6,3.8

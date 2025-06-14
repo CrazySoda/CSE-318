@@ -1,0 +1,5 @@
+Timeout (s),Balanced Win Rate,Aggressive Win Rate,Avg Duration (s)
+1.0,0.500,0.500,4.0
+3.0,0.500,0.500,4.0
+5.0,0.500,0.500,4.0
+10.0,0.500,0.500,4.0

@@ -885,7 +885,7 @@ class RandomAgent:
     
     def __init__(self, player: int):
         self.player = player
-        self.nodes_explored = 1  # For consistency with MinimaxAgent stats
+        self.nodes_explored = 1  
         self.search_time = 0
         
     def choose_move(self, state: core.GameState) -> Tuple[int, int]:
@@ -927,10 +927,12 @@ class RandomAgent:
         }
 
 
-        # ═══════════════════════════════════════════════════════════════════════════════
-        # PRESET CONFIGURATIONS
-        # ═══════════════════════════════════════════════════════════════════════════════
-        
+       
+       
+       
+
+# PRESET CONFIGURATIONS
+     
 def create_balanced_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
     """Balanced AI focusing on a mix of strategies."""
     config = AIConfig()
@@ -999,7 +1001,7 @@ def create_material_only_config(timeout: float = 3.0, explosion_limit: int = 50)
     config.enabled_heuristics = {
         'material': True,
         'territorial': False,
-        'critical_mass': True,  # Keep some threat awareness
+        'critical_mass': True, 
         'mobility': False,
         'chain_potential': False,
         'positional': False

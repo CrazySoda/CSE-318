@@ -43,8 +43,6 @@ class ExperimentResult:
     avg_search_time_p2: float
     total_experiment_time: float
     individual_games: List[Dict[str, Any]]
-    experiment_type: str = ""
-    parameter_tested: str = ""
     
     @property
     def player1_win_rate(self) -> float:
@@ -116,29 +114,25 @@ class ExperimentRunner:
                 'type': config_name,
                 'depth': config.depth,
                 'timeout': config.timeout,
-                'explosion_limit': getattr(config, 'explosion_limit', 0),
-                'enabled_heuristics': [h for h, enabled in getattr(config, 'enabled_heuristics', {}).items() if enabled],
-                'weights': getattr(config, 'get_active_weights', lambda: {})(),
-                'use_transposition_table': getattr(config, 'use_transposition_table', False),
-                'use_move_ordering': getattr(config, 'use_move_ordering', False)
+                'explosion_limit': config.explosion_limit,
+                'enabled_heuristics': [h for h, enabled in config.enabled_heuristics.items() if enabled],
+                'weights': config.get_active_weights(),
+                'use_transposition_table': config.use_transposition_table,
+                'use_move_ordering': config.use_move_ordering
             }
         
         # Fallback - create config to get details
-        try:
-            config = self.ai_configs[config_name]()
-            return {
-                'type': config_name,
-                'depth': config.depth,
-                'timeout': config.timeout,
-                'explosion_limit': getattr(config, 'explosion_limit', 0),
-                'enabled_heuristics': [h for h, enabled in getattr(config, 'enabled_heuristics', {}).items() if enabled],
-                'weights': getattr(config, 'get_active_weights', lambda: {})(),
-                'use_transposition_table': getattr(config, 'use_transposition_table', False),
-                'use_move_ordering': getattr(config, 'use_move_ordering', False)
-            }
-        except Exception as e:
-            print(f"Warning: Could not get config details for {config_name}: {e}")
-            return {'type': config_name, 'error': str(e)}
+        config = self.ai_configs[config_name]()
+        return {
+            'type': config_name,
+            'depth': config.depth,
+            'timeout': config.timeout,
+            'explosion_limit': config.explosion_limit,
+            'enabled_heuristics': [h for h, enabled in config.enabled_heuristics.items() if enabled],
+            'weights': config.get_active_weights(),
+            'use_transposition_table': config.use_transposition_table,
+            'use_move_ordering': config.use_move_ordering
+        }
     
     def run_single_experiment(self, config1_name: str, config2_name: str, 
                              num_games: int = None, depth1: int = None, depth2: int = None,
@@ -174,16 +168,16 @@ class ExperimentRunner:
         
         if show_gui:
             # Use GUI for visual experiments
+            controller = gui.RealtimeGUIBattleController()
+            controller.auto_advance = True
+            
+            # Set up custom configs
+            if config1_name != 'random':
+                controller.ai_player1_config = agent1.config
+            if config2_name != 'random':
+                controller.ai_player2_config = agent2.config
+            
             try:
-                controller = gui.RealtimeGUIBattleController()
-                controller.auto_advance = True
-                
-                # Set up custom configs
-                if config1_name != 'random':
-                    controller.ai_player1_config = agent1.config
-                if config2_name != 'random':
-                    controller.ai_player2_config = agent2.config
-                
                 result = controller.battle_configs_realtime(
                     config1_name if config1_name != 'random' else 'balanced',
                     config2_name if config2_name != 'random' else 'balanced', 
@@ -239,10 +233,6 @@ class ExperimentRunner:
                                 game_stats_p2['nodes'].append(stats.get('nodes_explored', 0))
                                 game_stats_p2['search_time'].append(move_time)
                         
-                        if move is None:
-                            print(f"Warning: Agent returned None move in game {game_num + 1}")
-                            break
-                            
                         state.apply_move(move[0], move[1])
                         move_count += 1
                         
@@ -464,8 +454,8 @@ class ExperimentRunner:
             
             for r in results:
                 writer.writerow([
-                    r.experiment_type,
-                    r.parameter_tested,
+                    getattr(r, 'experiment_type', 'unknown'),
+                    getattr(r, 'parameter_tested', 'unknown'),
                     r.config1_name, r.config2_name,
                     r.player1_wins, r.player2_wins, r.draws,
                     f"{r.player1_win_rate:.3f}", f"{r.player2_win_rate:.3f}",
@@ -500,8 +490,8 @@ class ExperimentRunner:
             
             for r in results:
                 writer.writerow([
-                    r.experiment_type,
-                    r.parameter_tested,
+                    getattr(r, 'experiment_type', 'unknown'),
+                    getattr(r, 'parameter_tested', 'unknown'),
                     r.config1_name, r.config2_name,
                     r.player1_wins, r.player2_wins, r.draws,
                     f"{r.player1_win_rate:.3f}", f"{r.player2_win_rate:.3f}",
@@ -522,7 +512,7 @@ class ExperimentRunner:
         print("="*60)
         
         # Depth analysis
-        depth_results = [r for r in results if r.experiment_type == 'depth_analysis']
+        depth_results = [r for r in results if getattr(r, 'experiment_type', '') == 'depth_analysis']
         if depth_results:
             print("\n📈 DEPTH ANALYSIS (vs Random Agent):")
             print("Depth | Win Rate | Avg Moves | Avg Nodes | Search Time")
@@ -532,7 +522,7 @@ class ExperimentRunner:
                 print(f"  {depth}   |  {r.player2_win_rate:6.1%}  |   {r.avg_moves_per_game:6.1f}  |   {r.avg_nodes_explored_p2:7.0f} |    {r.avg_search_time_p2:.3f}s")
         
         # Timeout analysis
-        timeout_results = [r for r in results if r.experiment_type == 'timeout_analysis']
+        timeout_results = [r for r in results if getattr(r, 'experiment_type', '') == 'timeout_analysis']
         if timeout_results:
             print("\n⏱️  TIMEOUT ANALYSIS (Balanced vs Aggressive):")
             print("Timeout | P1 Win Rate | P2 Win Rate | Avg Duration")
@@ -542,7 +532,7 @@ class ExperimentRunner:
                 print(f"  {timeout}s   |    {r.player1_win_rate:6.1%}   |    {r.player2_win_rate:6.1%}   |    {r.avg_game_duration:6.1f}s")
         
         # Heuristic analysis
-        heuristic_results = [r for r in results if r.experiment_type == 'heuristic_analysis']
+        heuristic_results = [r for r in results if getattr(r, 'experiment_type', '') == 'heuristic_analysis']
         if heuristic_results:
             print("\n🧠 HEURISTIC ANALYSIS (vs Random Agent):")
             print("Heuristic    | Win Rate | Avg Moves | Performance")
@@ -558,7 +548,7 @@ class ExperimentRunner:
         print("="*60)
         
         # Tournament results
-        tournament_results = [r for r in results if r.experiment_type == 'tournament']
+        tournament_results = [r for r in results if getattr(r, 'experiment_type', '') == 'tournament']
         if tournament_results:
             print("\n🏆 TOURNAMENT RESULTS:")
             print("Matchup                    | Winner     | Score    | Win Rate")
@@ -570,7 +560,7 @@ class ExperimentRunner:
                 print(f"{r.config1_name:12} vs {r.config2_name:12} | {winner:10} | {score:8} | {win_rate:6.1%}")
         
         # Performance vs Random
-        vs_random_results = [r for r in results if r.experiment_type == 'vs_random']
+        vs_random_results = [r for r in results if getattr(r, 'experiment_type', '') == 'vs_random']
         if vs_random_results:
             print("\n🎯 PERFORMANCE VS RANDOM AGENT:")
             print("Config       | Win Rate | Avg Moves | Efficiency")
@@ -592,11 +582,7 @@ class ExperimentRunner:
             print("Invalid configuration!")
             return
         
-        try:
-            num_games = int(input("Number of games (default 5): ").strip() or "5")
-        except ValueError:
-            num_games = 5
-            
+        num_games = int(input("Number of games (default 5): ").strip() or "5")
         show_gui = input("Show GUI? (y/n, default n): ").strip().lower() == 'y'
         
         result = self.run_single_experiment(config1, config2, num_games, show_gui=show_gui)
@@ -641,47 +627,32 @@ def main():
             print("This will test different depths and time limits.")
             confirm = input("This may take 20-30 minutes. Continue? (y/n): ").strip().lower()
             if confirm == 'y':
-                try:
-                    runner.run_task4_experiments()
-                    print("\n✅ Task 4 experiments complete!")
-                except Exception as e:
-                    print(f"\n❌ Task 4 experiments failed: {e}")
+                runner.run_task4_experiments()
+                print("\n✅ Task 4 experiments complete!")
         
         elif choice == "2":
             print("\n🚀 Starting Task 5 Experiments...")
             print("This will run comprehensive AI vs AI analysis.")
             confirm = input("This may take 30-60 minutes. Continue? (y/n): ").strip().lower()
             if confirm == 'y':
-                try:
-                    runner.run_task5_experiments()
-                    print("\n✅ Task 5 experiments complete!")
-                except Exception as e:
-                    print(f"\n❌ Task 5 experiments failed: {e}")
+                runner.run_task5_experiments()
+                print("\n✅ Task 5 experiments complete!")
         
         elif choice == "3":
             print("\n🚀 Starting Full Experiment Suite...")
             confirm = input("This may take 60-90 minutes. Continue? (y/n): ").strip().lower()
             if confirm == 'y':
-                try:
-                    runner.run_task4_experiments()
-                    runner.run_task5_experiments()
-                    print("\n✅ All experiments complete!")
-                except Exception as e:
-                    print(f"\n❌ Experiments failed: {e}")
+                runner.run_task4_experiments()
+                runner.run_task5_experiments()
+                print("\n✅ All experiments complete!")
         
         elif choice == "4":
-            try:
-                runner.run_interactive_experiment()
-            except Exception as e:
-                print(f"\n❌ Interactive experiment failed: {e}")
+            runner.run_interactive_experiment()
         
         elif choice == "5":
             print("\n🎮 Quick Demo: Balanced vs Aggressive")
-            try:
-                result = runner.run_single_experiment('balanced', 'aggressive', 3, show_gui=True)
-                print(f"Demo complete! Winner: {result.config1_name if result.player1_wins > result.player2_wins else result.config2_name}")
-            except Exception as e:
-                print(f"\n❌ Quick demo failed: {e}")
+            result = runner.run_single_experiment('balanced', 'aggressive', 3, show_gui=True)
+            print(f"Demo complete! Winner: {result.config1_name if result.player1_wins > result.player2_wins else result.config2_name}")
         
         else:
             print("Invalid choice!")
