@@ -786,6 +786,7 @@ class RandomAgent:
         }
 
 
+#========================================================================================================================================
 # PRESET CONFIGURATIONS
      
 def create_balanced_config(timeout: float = 3.0, explosion_limit: int = 50) -> AIConfig:
