@@ -21,7 +21,11 @@ MAX_DEPTH = 6
 MIN_DEPTH = 3             
 
 # Performance settings
+USE_TRANSPOSITION_TABLE = True  # Set to False to disable caching
+MAX_TABLE_SIZE = 10000         # Increased for better caching
+CACHE_CLEANUP_THRESHOLD = 8000  # When to start cleaning cache
 USE_MOVE_ORDERING = True       # Set to False to disable move ordering
+USE_ASPIRATION_WINDOWS = False  # Set to False to disable aspiration windows
 
 # Explosion limit settings 
 DEFAULT_EXPLOSION_LIMIT = 100   # Maximum explosions per minimax search
@@ -34,13 +38,30 @@ MIN_TIMEOUT = 5.0              # Minimum timeout
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class Heuristics:
-    """Optimized heuristic evaluation functions."""
+    """Optimized heuristic evaluation functions with caching."""
     
     def __init__(self):
-        pass
+        self._cache = {}
+        self._cache_hits = 0
+        self._cache_misses = 0
+    
+    def _get_cache_key(self, state: core.GameState, player: int, heuristic: str) -> str:
+        """Fast cache key generation."""
+        board_hash = 0
+        for r in range(state.rows):
+            for c in range(state.cols):
+                cell = state.board[r][c]
+                if cell.owner:
+                    board_hash = board_hash * 31 + (r * state.cols + c) * 10 + cell.count * 2 + cell.owner
+        return f"{heuristic}_{player}_{board_hash}"
     
     def material_advantage(self, state: core.GameState, player: int) -> float:
         """Count orbs with proximity-to-explosion bonus - optimized."""
+        cache_key = self._get_cache_key(state, player, "material")
+        if cache_key in self._cache:
+            self._cache_hits += 1
+            return self._cache[cache_key]
+        
         my_score = opp_score = 0
         opponent = 3 - player
         
@@ -71,6 +92,8 @@ class Heuristics:
                     opp_score += cell.count * (1 + proximity_bonus)
         
         result = my_score - opp_score
+        self._cache[cache_key] = result
+        self._cache_misses += 1
         return result
     
     def territorial_control(self, state: core.GameState, player: int) -> float:
@@ -245,7 +268,9 @@ class AIConfig:
         self.timeout = DEFAULT_TIMEOUT
         self.explosion_limit = DEFAULT_EXPLOSION_LIMIT  
         self.explosion_limit_enabled = EXPLOSION_LIMIT_ENABLED  
+        self.use_transposition_table = USE_TRANSPOSITION_TABLE
         self.use_move_ordering = USE_MOVE_ORDERING
+        self.use_aspiration_windows = USE_ASPIRATION_WINDOWS
     
     def disable_heuristic(self, heuristic_name: str):
         """Disable a specific heuristic."""
@@ -297,7 +322,7 @@ class _GameState:
         self.board_counts = [[cell.count for cell in row] for row in state.board]
         self._move_history = []
     
-    def _owner_check(self) -> int:
+    def _fast_owner_check(self) -> int:
         """
         Fast check for number of distinct owners on board.
         Returns: 0 (no owners), 1 (one owner), 2+ (multiple owners)
@@ -367,7 +392,7 @@ class _GameState:
                 
                 # OPTIMIZATION: Check for early win after each explosion
                 # If only one player remains, stop processing further explosions
-                owner_count = self._owner_check()
+                owner_count = self._fast_owner_check()
                 if owner_count <= 1:
                     # Game is decided - clear remaining queue and exit
                     queue.clear()
@@ -412,6 +437,15 @@ class _GameState:
                 if self.board_owners[r][c] in (None, player):
                     moves.append((r, c))
         return moves
+    
+    def get_hash(self) -> int:
+        """Fast board hash for transposition table."""
+        h = 0
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.board_owners[r][c]:
+                    h = h * 31 + (r * self.cols + c) * 10 + self.board_counts[r][c] * 2 + self.board_owners[r][c] # type: ignore
+        return h * 2 + self.current_player
 
 class MinimaxAgent:
     """Highly optimized Minimax agent with timeout and explosion limiting."""
@@ -421,7 +455,8 @@ class MinimaxAgent:
         self.config = config or AIConfig()
         self.heuristics = Heuristics()
         
-        # Move ordering helpers
+        # Enhanced transposition table with heuristic values for tie-breaking
+        self.transposition_table: Dict[int, Tuple[float, int, Optional[Tuple[int, int]], str, float]] = {}
         self.killer_moves: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
         self.history_heuristic: Dict[Tuple[int, int], int] = defaultdict(int)
         
@@ -434,11 +469,36 @@ class MinimaxAgent:
         # Statistics
         self.nodes_explored = 0
         self.alpha_beta_cutoffs = 0
+        self.table_hits = 0
         self.killer_cutoffs = 0
+        self.cache_cleanups = 0
         
         # Move evaluation tracking for local best move selection
         self.evaluated_moves: List[Tuple[Tuple[int, int], float]] = []  # NEW: (move, score) pairs
         
+    def _cleanup_cache(self):
+        """Clean up cache keeping local optimas and high-value entries."""
+        if len(self.transposition_table) < CACHE_CLEANUP_THRESHOLD:
+            return
+            
+        # Sort by combined score: depth + heuristic value for tie-breaking
+        entries = []
+        for hash_key, (value, depth, move, bound_type, heuristic_score) in self.transposition_table.items():
+            combined_score = depth * 100 + abs(heuristic_score)  # Prioritize depth, then heuristic value
+            entries.append((combined_score, hash_key, value, depth, move, bound_type, heuristic_score))
+        
+        # Keep top entries (local optimas) and remove the rest
+        entries.sort(reverse=True)
+        keep_count = MAX_TABLE_SIZE // 2
+        
+        # Clear table and repopulate with best entries
+        self.transposition_table.clear()
+        for i in range(min(keep_count, len(entries))):
+            _, hash_key, value, depth, move, bound_type, heuristic_score = entries[i]
+            self.transposition_table[hash_key] = (value, depth, move, bound_type, heuristic_score)
+        
+        self.cache_cleanups += 1
+    
     def _is_timeout(self) -> bool:
         """Check if timeout has been reached."""
         if self.timeout_reached:
@@ -564,6 +624,19 @@ class MinimaxAgent:
             eval_score = self.evaluate_state_(_game_state)
             return eval_score, None
         
+        # Transposition table lookup with tie-breaking
+        state_hash = _game_state.get_hash()
+        if self.config.use_transposition_table and state_hash in self.transposition_table:
+            cached_value, cached_depth, cached_move, bound_type, cached_heuristic = self.transposition_table[state_hash]
+            if cached_depth >= depth:
+                self.table_hits += 1
+                if bound_type == 'EXACT':
+                    return cached_value, cached_move
+                elif bound_type == 'LOWER' and cached_value >= beta:
+                    return cached_value, cached_move
+                elif bound_type == 'UPPER' and cached_value <= alpha:
+                    return cached_value, cached_move
+        
         current_player = _game_state.current_player
         legal_moves = _game_state.generate_moves(current_player)
         
@@ -574,6 +647,7 @@ class MinimaxAgent:
         # Advanced move ordering
         ordered_moves = self.order_moves_advanced(legal_moves, _game_state, depth)
         best_action = None
+        original_alpha = alpha
         
         if maximizing_player:
             max_eval = -math.inf
@@ -608,6 +682,22 @@ class MinimaxAgent:
                             self.killer_moves[depth].pop()
                         self.killer_cutoffs += 1
                     break
+            
+            # Store in transposition table with heuristic value for tie-breaking
+            if self.config.use_transposition_table and not self._should_stop_search():
+                # Clean cache if needed
+                if len(self.transposition_table) >= MAX_TABLE_SIZE:
+                    self._cleanup_cache()
+                
+                if len(self.transposition_table) < MAX_TABLE_SIZE:
+                    heuristic_value = abs(max_eval) if max_eval != math.inf and max_eval != -math.inf else 0
+                    if max_eval <= original_alpha:
+                        bound_type = 'UPPER'
+                    elif max_eval >= beta:
+                        bound_type = 'LOWER'
+                    else:
+                        bound_type = 'EXACT'
+                    self.transposition_table[state_hash] = (max_eval, depth, best_action, bound_type, heuristic_value)
             
             return max_eval, best_action
         
@@ -644,7 +734,41 @@ class MinimaxAgent:
                         self.killer_cutoffs += 1
                     break
             
+            # Store in transposition table with heuristic value for tie-breaking
+            if self.config.use_transposition_table and not self._should_stop_search():
+                # Clean cache if needed
+                if len(self.transposition_table) >= MAX_TABLE_SIZE:
+                    self._cleanup_cache()
+                
+                if len(self.transposition_table) < MAX_TABLE_SIZE:
+                    heuristic_value = abs(min_eval) if min_eval != math.inf and min_eval != -math.inf else 0
+                    if min_eval <= original_alpha:
+                        bound_type = 'UPPER'
+                    elif min_eval >= beta:
+                        bound_type = 'LOWER'
+                    else:
+                        bound_type = 'EXACT'
+                    self.transposition_table[state_hash] = (min_eval, depth, best_action, bound_type, heuristic_value)
+            
             return min_eval, best_action
+    
+    def search_with_aspiration_windows(self, _game_state: _GameState, depth: int) -> Tuple[float, Optional[Tuple[int, int]]]:
+        """Search with aspiration windows for better pruning."""
+        if not self.config.use_aspiration_windows or self._should_stop_search():
+            return self.alpha_beta_(_game_state, depth, -math.inf, math.inf, True)
+        
+        # Initial search with narrow window
+        alpha, beta = -100, 100
+        value, move = self.alpha_beta_(_game_state, depth, alpha, beta, True)
+        
+        # If search failed and we have time, re-search with wider window
+        if not self._should_stop_search():
+            if value <= alpha:
+                value, move = self.alpha_beta_(_game_state, depth, -math.inf, beta, True)
+            elif value >= beta:
+                value, move = self.alpha_beta_(_game_state, depth, alpha, math.inf, True)
+        
+        return value, move
     
     def _get_best_local_move(self, _game_state: _GameState) -> Tuple[int, int]:
         """Get the best move from evaluated moves or quick local evaluation."""
@@ -680,6 +804,7 @@ class MinimaxAgent:
         # Reset statistics and limits
         self.nodes_explored = 0
         self.alpha_beta_cutoffs = 0
+        self.table_hits = 0
         self.killer_cutoffs = 0
         self.start_time = time.time()
         self.timeout_reached = False
@@ -699,7 +824,7 @@ class MinimaxAgent:
                 break
                 
             try:
-                value, move = self.alpha_beta_(_game_state, d, -math.inf, math.inf, True)
+                value, move = self.search_with_aspiration_windows(_game_state, d)
                 if move and not self._should_stop_search():
                     best_move = move
                     last_complete_depth = d
@@ -727,6 +852,9 @@ class MinimaxAgent:
     
     def get_search_statistics(self) -> Dict[str, Any]:
         """Get comprehensive search statistics including explosion data."""
+        total_lookups = self.table_hits + max(1, self.nodes_explored - self.table_hits)
+        hit_rate = (self.table_hits / total_lookups * 100) if total_lookups > 0 else 0
+        
         return {
             'nodes_explored': self.nodes_explored,
             'alpha_beta_cutoffs': self.alpha_beta_cutoffs,
@@ -740,8 +868,14 @@ class MinimaxAgent:
             'explosion_limit_reached': self.explosion_limit_reached,
             'evaluated_moves_count': len(self.evaluated_moves),
             'search_time': time.time() - self.start_time if self.start_time > 0 else 0,
+            'table_hits': self.table_hits,
+            'hit_rate_percent': hit_rate,
+            'cache_cleanups': self.cache_cleanups,
+            'table_size': len(self.transposition_table),
             'enabled_heuristics': [name for name, enabled in self.config.enabled_heuristics.items() if enabled],
-            'heuristic_weights': self.config.get_active_weights()
+            'heuristic_weights': self.config.get_active_weights(),
+            'cache_hits': self.heuristics._cache_hits,
+            'cache_misses': self.heuristics._cache_misses
         }
 
 
@@ -781,8 +915,14 @@ class RandomAgent:
             'explosion_limit_reached': False,
             'evaluated_moves_count': 1,
             'search_time': self.search_time,
+            'table_hits': 0,
+            'hit_rate_percent': 0,
+            'cache_cleanups': 0,
+            'table_size': 0,
             'enabled_heuristics': [],
-            'heuristic_weights': {}
+            'heuristic_weights': {},
+            'cache_hits': 0,
+            'cache_misses': 0
         }
 
 

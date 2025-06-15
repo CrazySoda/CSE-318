@@ -1,0 +1,9 @@
+Heuristic 1,Heuristic 2,Winner,Score,Win Margin
+Critical Mass,Chain,Critical Mass,15-0,100.0%
+Territorial,Chain,Territorial,14-1,86.6%
+Chain,Positional,Positional,1-14,86.6%
+Material,Territorial,Territorial,2-13,73.4%
+Material,Critical Mass,Critical Mass,2-13,73.4%
+Material,Chain,Material,13-2,73.4%
+Territorial,Mobility,Mobility,3-12,60.0%
+Material,Positional,Positional,4-11,46.6%

@@ -1,0 +1,16 @@
+Matchup,Winner,Score,Win_Rate
+balanced vs aggressive,Draw,10-10,0.500
+balanced vs defensive,defensive,4-16,0.800
+balanced vs tactical,balanced,10-9,0.500
+balanced vs strategic,balanced,11-9,0.550
+balanced vs fast,balanced,15-5,0.750
+aggressive vs defensive,defensive,9-11,0.550
+aggressive vs tactical,tactical,8-12,0.600
+aggressive vs strategic,strategic,8-12,0.600
+aggressive vs fast,aggressive,14-6,0.700
+defensive vs tactical,defensive,14-6,0.700
+defensive vs strategic,strategic,7-13,0.650
+defensive vs fast,fast,4-16,0.800
+tactical vs strategic,tactical,10-9,0.500
+tactical vs fast,fast,8-12,0.600
+strategic vs fast,fast,7-13,0.650

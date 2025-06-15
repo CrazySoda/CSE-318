@@ -204,15 +204,15 @@ class ChainReactionGUI:
         
         # Available AI presets
         self.ai_presets = {
-            "Balanced": ai.create_balanced_config,
-            "Aggressive": ai.create_aggressive_config,
-            "Defensive": ai.create_defensive_config,
-            "Tactical": ai.create_tactical_config,
-            "Strategic": ai.create_strategic_config,
-            "Fast": ai.create_fast_config,
-            "Material Only": ai.create_material_only_config,
-            "Unlimited Explosions": ai.create_unlimited_explosions_config
-        }
+        "Balanced": ai.create_balanced_config,
+        "Aggressive": ai.create_aggressive_config,
+        "Defensive": ai.create_defensive_config,
+        "Tactical": ai.create_tactical_config,
+        "Strategic": ai.create_strategic_config,
+        "Fast": ai.create_fast_config,
+        "Material Only": ai.create_material_only_config,
+        "Unlimited Explosions": ai.create_unlimited_explosions_config
+}
 
     def draw_rounded_rect(self, surface, color, rect, radius=8):
         """Draw a rounded rectangle."""
@@ -426,640 +426,9 @@ class ChainReactionGUI:
             
         print(f"Mode {self.mode} initialized successfully")
 
-    def _ai_config_menu(self):
-        """Main AI configuration menu for PVAI mode."""
-        configuring = True
-        selected_option = 0
-        
-        options = [
-            ("P", "Load Preset"),
-            ("D", "Change Depth"),
-            ("H", "Toggle Heuristics"),
-            ("W", "Adjust Weights"),
-            ("T", "Test Config"),
-            ("A", "Apply Changes"),
-        ]
-        
-        while configuring:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(380, WIDTH - 20)
-            panel_height = min(450, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI Configuration")
-            
-            # Current configuration display
-            config_y = content_rect[1] + 10
-            
-            config_info = [
-                f"Depth: {self.ai_config.depth}",
-                f"Timeout: {self.ai_config.timeout:.1f}s",
-                f"Enabled: {len([h for h, e in self.ai_config.enabled_heuristics.items() if e])}/6 heuristics",
-                f"Move Ordering: {'ON' if self.ai_config.use_move_ordering else 'OFF'}",
-            ]
-            
-            for i, info in enumerate(config_info):
-                info_surf = self.fonts['small'].render(info, True, COLORS['text_secondary'])
-                self.screen.blit(info_surf, (content_rect[0], config_y + i * 18))
-            
-            # Options menu
-            options_y = config_y + len(config_info) * 18 + 20
-            button_height = 25
-            button_spacing = 3
-            
-            for i, (key, title) in enumerate(options):
-                button_rect = (content_rect[0], options_y + i * (button_height + button_spacing), 
-                             content_rect[2], button_height)
-                
-                is_selected = (i == selected_option)
-                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'small', is_selected)
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 30
-            controls = "↑↓: Select | ENTER: Choose | B: Back"
-            controls_surf = self.fonts['tiny'].render(controls, True, COLORS['text_muted'])
-            self.screen.blit(controls_surf, (content_rect[0], controls_y))
-            
-            pygame.display.flip()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        selected_option = (selected_option - 1) % len(options)
-                    elif event.key == pygame.K_DOWN:
-                        selected_option = (selected_option + 1) % len(options)
-                    elif event.key == pygame.K_RETURN:
-                        key, _ = options[selected_option]
-                        if key == "P":
-                            self._preset_menu_for_ai_config()
-                        elif key == "D":
-                            self._change_depth_for_ai_config()
-                        elif key == "H":
-                            self._toggle_heuristics_for_ai_config()
-                        elif key == "W":
-                            self._adjust_weights_for_ai_config()
-                        elif key == "T":
-                            self._test_ai_config()
-                        elif key == "A":
-                            self._apply_ai_config_changes()
-                    elif event.key == pygame.K_p:
-                        self._preset_menu_for_ai_config()
-                    elif event.key == pygame.K_d:
-                        self._change_depth_for_ai_config()
-                    elif event.key == pygame.K_h:
-                        self._toggle_heuristics_for_ai_config()
-                    elif event.key == pygame.K_w:
-                        self._adjust_weights_for_ai_config()
-                    elif event.key == pygame.K_t:
-                        self._test_ai_config()
-                    elif event.key == pygame.K_a:
-                        self._apply_ai_config_changes()
-                    elif event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
-                        configuring = False
-
-    def _preset_menu_for_ai_config(self):
-        """Preset selection menu for AI config."""
-        selecting = True
-        selected = 0
-        preset_names = list(self.ai_presets.keys())
-        
-        descriptions = {
-            "Balanced": "Well-rounded strategy",
-            "Aggressive": "High-risk, high-reward", 
-            "Defensive": "Territory focused",
-            "Tactical": "Threat and reaction focused",
-            "Strategic": "Long-term positioning",
-            "Fast": "Quick decisions, lower depth",
-            "Material Only": "Orb counting only",
-            "Unlimited Explosions": "No explosion limits"
-        }
-        
-        while selecting:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(350, WIDTH - 20)
-            panel_height = min(550, HEIGHT - 20)
-            panel_x = (WIDTH - panel_width) // 2
-            panel_y = (HEIGHT - panel_height) // 2
-            panel_rect = (panel_x, panel_y, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI Presets")
-            
-            button_height = 28
-            button_spacing = 3
-            start_y = content_rect[1] + 5
-            
-            for i, preset_name in enumerate(preset_names):
-                button_rect = (content_rect[0], start_y + i * (button_height + button_spacing + 20), 
-                             content_rect[2], button_height)
-                
-                is_selected = (i == selected)
-                self.draw_button(self.screen, preset_name, button_rect, 'normal', is_selected)
-                
-                # Description
-                desc_y = button_rect[1] + button_height + 2
-                desc_surf = self.fonts['small'].render(descriptions.get(preset_name, ""), True, COLORS['text_muted'])
-                self.screen.blit(desc_surf, (button_rect[0] + 5, desc_y))
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 25
-            controls = "↑↓: Select | ENTER: Load | ESC: Cancel"
-            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
-            self.screen.blit(controls_surf, (content_rect[0], controls_y))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        selected = (selected - 1) % len(preset_names)
-                    elif event.key == pygame.K_DOWN:
-                        selected = (selected + 1) % len(preset_names)
-                    elif event.key == pygame.K_RETURN:
-                        preset_name = preset_names[selected]
-                        self.ai_config = self.ai_presets[preset_name]()
-                        selecting = False
-                    elif event.key == pygame.K_ESCAPE:
-                        selecting = False
-
-    def _change_depth_for_ai_config(self):
-        """Depth adjustment for AI config."""
-        changing = True
-        
-        while changing:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(280, WIDTH - 40)
-            panel_height = min(220, HEIGHT - 40)
-            panel_x = (WIDTH - panel_width) // 2
-            panel_y = (HEIGHT - panel_height) // 2
-            panel_rect = (panel_x, panel_y, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI Search Depth")
-            
-            # Current depth display
-            depth_text = f"Current: {self.ai_config.depth}"
-            depth_surf = self.fonts['title'].render(depth_text, True, COLORS['text_primary'])
-            depth_x = content_rect[0] + (content_rect[2] - depth_surf.get_width()) // 2
-            self.screen.blit(depth_surf, (depth_x, content_rect[1] + 20))
-            
-            # Range info
-            range_text = f"Range: {ai.MIN_DEPTH} - {ai.MAX_DEPTH}"
-            range_surf = self.fonts['small'].render(range_text, True, COLORS['text_secondary'])
-            range_x = content_rect[0] + (content_rect[2] - range_surf.get_width()) // 2
-            self.screen.blit(range_surf, (range_x, content_rect[1] + 50))
-            
-            # Description
-            desc_text = "Higher = smarter but slower"
-            desc_surf = self.fonts['small'].render(desc_text, True, COLORS['text_muted'])
-            desc_x = content_rect[0] + (content_rect[2] - desc_surf.get_width()) // 2
-            self.screen.blit(desc_surf, (desc_x, content_rect[1] + 70))
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 40
-            controls = "← → Adjust | ENTER: Confirm"
-            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
-            controls_x = content_rect[0] + (content_rect[2] - controls_surf.get_width()) // 2
-            self.screen.blit(controls_surf, (controls_x, controls_y))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        self.ai_config.set_depth(self.ai_config.depth - 1)
-                    elif event.key == pygame.K_RIGHT:
-                        self.ai_config.set_depth(self.ai_config.depth + 1)
-                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
-                        changing = False
-
-    def _toggle_heuristics_for_ai_config(self):
-        """Heuristics toggle for AI config."""
-        toggling = True
-        selected = 0
-        heuristic_names = list(self.ai_config.enabled_heuristics.keys())
-        
-        heuristic_descriptions = {
-            'material': 'Count and value orbs',
-            'territorial': 'Control territory',
-            'critical_mass': 'Explosion threats',
-            'mobility': 'Move options',
-            'chain_potential': 'Chain reactions',
-            'positional': 'Board position'
-        }
-        
-        while toggling:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(400, WIDTH - 20)
-            panel_height = min(420, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI Heuristics")
-            
-            # Heuristics list
-            item_height = 35
-            start_y = content_rect[1] + 10
-            
-            for i, heuristic in enumerate(heuristic_names):
-                enabled = self.ai_config.enabled_heuristics[heuristic]
-                y_pos = start_y + i * item_height
-                
-                # Selection highlight
-                if i == selected:
-                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
-                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
-                
-                # Status indicator
-                status_color = COLORS['success'] if enabled else COLORS['text_muted']
-                status_text = "●" if enabled else "○"
-                status_surf = self.fonts['normal'].render(status_text, True, status_color)
-                self.screen.blit(status_surf, (content_rect[0], y_pos))
-                
-                # Heuristic name and weight
-                name_text = heuristic.replace('_', ' ').title()
-                weight = self.ai_config.weights.get(heuristic, 0)
-                if enabled:
-                    display_text = f"{name_text} (Weight: {weight:.1f})"
-                    name_color = COLORS['text_primary']
-                else:
-                    display_text = f"{name_text} (Disabled)"
-                    name_color = COLORS['text_muted']
-                
-                name_surf = self.fonts['normal'].render(display_text, True, name_color)
-                self.screen.blit(name_surf, (content_rect[0] + 25, y_pos))
-                
-                # Description
-                desc_text = heuristic_descriptions.get(heuristic, "")
-                desc_surf = self.fonts['small'].render(desc_text, True, COLORS['text_muted'])
-                self.screen.blit(desc_surf, (content_rect[0] + 25, y_pos + 15))
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 25
-            controls = "↑↓: Select | SPACE: Toggle | ENTER: Done"
-            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
-            self.screen.blit(controls_surf, (content_rect[0], controls_y))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        selected = (selected - 1) % len(heuristic_names)
-                    elif event.key == pygame.K_DOWN:
-                        selected = (selected + 1) % len(heuristic_names)
-                    elif event.key == pygame.K_SPACE:
-                        heuristic = heuristic_names[selected]
-                        current = self.ai_config.enabled_heuristics[heuristic]
-                        self.ai_config.enabled_heuristics[heuristic] = not current
-                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
-                        toggling = False
-
-    def _adjust_weights_for_ai_config(self):
-        """Adjust weights for AI config."""
-        adjusting = True
-        selected = 0
-        heuristic_names = [h for h in self.ai_config.enabled_heuristics.keys() 
-                         if self.ai_config.enabled_heuristics[h]]
-        
-        if not heuristic_names:
-            # Show message if no heuristics are enabled
-            self._show_message("No Enabled Heuristics", "Enable some heuristics first!")
-            return
-        
-        while adjusting:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(380, WIDTH - 20)
-            panel_height = min(400, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "Adjust Weights")
-            
-            # Weights list
-            item_height = 30
-            start_y = content_rect[1] + 10
-            
-            for i, heuristic in enumerate(heuristic_names):
-                weight = self.ai_config.weights[heuristic]
-                y_pos = start_y + i * item_height
-                
-                # Selection highlight
-                if i == selected:
-                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
-                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
-                
-                # Heuristic name and weight
-                name_text = heuristic.replace('_', ' ').title()
-                display_text = f"{name_text}: {weight:.1f}"
-                
-                name_surf = self.fonts['normal'].render(display_text, True, COLORS['text_primary'])
-                self.screen.blit(name_surf, (content_rect[0], y_pos))
-                
-                # Weight bar
-                bar_width = 100
-                bar_height = 8
-                bar_x = content_rect[0] + content_rect[2] - bar_width - 10
-                bar_y = y_pos + 8
-                
-                # Background bar
-                bar_bg_rect = (bar_x, bar_y, bar_width, bar_height)
-                pygame.draw.rect(self.screen, COLORS['bg_secondary'], bar_bg_rect, border_radius=4)
-                
-                # Weight bar (normalize to 0-10 range for display)
-                weight_ratio = min(1.0, weight / 10.0)
-                weight_width = int(bar_width * weight_ratio)
-                if weight_width > 0:
-                    weight_rect = (bar_x, bar_y, weight_width, bar_height)
-                    color = COLORS['success'] if weight <= 5 else COLORS['warning'] if weight <= 8 else COLORS['danger']
-                    pygame.draw.rect(self.screen, color, weight_rect, border_radius=4)
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 40
-            controls = ["↑↓: Select | ← → Adjust Weight", "ENTER: Done | ESC: Cancel"]
-            for i, control in enumerate(controls):
-                control_surf = self.fonts['small'].render(control, True, COLORS['text_muted'])
-                self.screen.blit(control_surf, (content_rect[0], controls_y + i * 15))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        selected = (selected - 1) % len(heuristic_names)
-                    elif event.key == pygame.K_DOWN:
-                        selected = (selected + 1) % len(heuristic_names)
-                    elif event.key == pygame.K_LEFT:
-                        heuristic = heuristic_names[selected]
-                        current_weight = self.ai_config.weights[heuristic]
-                        new_weight = max(0.1, current_weight - 0.1)
-                        self.ai_config.set_weight(heuristic, new_weight)
-                    elif event.key == pygame.K_RIGHT:
-                        heuristic = heuristic_names[selected]
-                        current_weight = self.ai_config.weights[heuristic]
-                        new_weight = min(10.0, current_weight + 0.1)
-                        self.ai_config.set_weight(heuristic, new_weight)
-                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
-                        adjusting = False
-
-    def _test_ai_config(self):
-        """Test current AI configuration."""
-        testing = True
-        
-        # Create test agent with current config
-        test_agent = ai.MinimaxAgent(player=2, config=self.ai_config)
-        
-        # Create test scenario
-        test_state = core.GameState(rows=9, cols=6)
-        test_state.board[2][2].owner = 1
-        test_state.board[2][2].count = 2
-        test_state.board[6][4].owner = 2
-        test_state.board[6][4].count = 1
-        test_state.current_player = 2
-        
-        # Get AI move and stats
-        start_time = time.time()
-        try:
-            ai_move = test_agent.choose_move(test_state.clone())
-            test_time = time.time() - start_time
-            stats = test_agent.get_search_statistics()
-            success = True
-        except Exception as e:
-            test_time = time.time() - start_time
-            error_msg = str(e)
-            success = False
-        
-        while testing:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(380, WIDTH - 20)
-            panel_height = min(350, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI Test Results")
-            
-            y_pos = content_rect[1] + 10
-            line_height = 20
-            
-            if success:
-                results = [
-                    f"✓ Test completed successfully",
-                    f"AI Move: {ai_move}",
-                    f"Time: {test_time:.3f}s",
-                    f"Nodes Explored: {stats['nodes_explored']}",
-                    f"Search Depth: {stats['search_depth']}",
-                    f"Alpha-Beta Cutoffs: {stats['alpha_beta_cutoffs']}",
-                ]
-                
-                for i, result in enumerate(results):
-                    color = COLORS['success'] if result.startswith("✓") else COLORS['text_primary']
-                    result_surf = self.fonts['small'].render(result, True, color)
-                    self.screen.blit(result_surf, (content_rect[0], y_pos + i * line_height))
-            else:
-                error_results = [
-                    f"✗ Test failed",
-                    f"Time: {test_time:.3f}s",
-                    f"Error: {error_msg[:50]}{'...' if len(error_msg) > 50 else ''}",
-                ]
-                
-                for i, result in enumerate(error_results):
-                    color = COLORS['danger'] if result.startswith("✗") else COLORS['text_primary']
-                    result_surf = self.fonts['small'].render(result, True, color)
-                    self.screen.blit(result_surf, (content_rect[0], y_pos + i * line_height))
-            
-            # Continue prompt
-            continue_y = content_rect[1] + content_rect[3] - 25
-            continue_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
-            continue_x = content_rect[0] + (content_rect[2] - continue_surf.get_width()) // 2
-            self.screen.blit(continue_surf, (continue_x, continue_y))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    testing = False
-
-    def _apply_ai_config_changes(self):
-        """Apply and save AI configuration changes."""
-        self._show_message("Configuration Applied", "AI settings have been updated!")
-
-    def _show_message(self, title: str, message: str):
-        """Show a simple message dialog."""
-        showing = True
-        
-        while showing:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(320, WIDTH - 40)
-            panel_height = min(180, HEIGHT - 40)
-            panel_x = (WIDTH - panel_width) // 2
-            panel_y = (HEIGHT - panel_height) // 2
-            panel_rect = (panel_x, panel_y, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, title)
-            
-            # Message
-            message_surf = self.fonts['normal'].render(message, True, COLORS['text_primary'])
-            message_x = content_rect[0] + (content_rect[2] - message_surf.get_width()) // 2
-            message_y = content_rect[1] + 30
-            self.screen.blit(message_surf, (message_x, message_y))
-            
-            # OK button
-            ok_y = content_rect[1] + content_rect[3] - 40
-            ok_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
-            ok_x = content_rect[0] + (content_rect[2] - ok_surf.get_width()) // 2
-            self.screen.blit(ok_surf, (ok_x, ok_y))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    showing = False
-
-    def _ai_vs_ai_config_menu(self):
-        """Compact AI vs AI configuration menu with weight adjustment."""
-        configuring = True
-        selected_player = 1
-        selected_option = 0
-        
-        options = [
-            ("P", "Load Preset"),
-            ("D", "Change Depth"),
-            ("H", "Toggle Heuristics"),
-            ("W", "Adjust Weights"),  
-            ("S", "Speed Settings"),
-            ("T", "Test Config"),
-            ("R", "Start Match"),
-        ]
-        
-        while configuring:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            # Main panel
-            panel_width = min(400, WIDTH - 20)
-            panel_height = min(500, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, "AI vs AI Configuration")
-            
-            # Player selector
-            player_y = content_rect[1]
-            for i, (player_num, color, config) in enumerate([(1, COLORS['player1'], self.ai_player1_config), 
-                                                            (2, COLORS['player2'], self.ai_player2_config)]):
-                button_width = content_rect[2] // 2 - 5
-                button_x = content_rect[0] + i * (button_width + 10)
-                button_rect = (button_x, player_y, button_width, 25)
-                
-                is_selected = (selected_player == player_num)
-                player_text = f"Player {player_num} ({'Red' if player_num == 1 else 'Blue'})"
-                
-                if is_selected:
-                    pygame.draw.rect(self.screen, color, button_rect, border_radius=4)
-                    text_color = COLORS['bg_primary']
-                else:
-                    pygame.draw.rect(self.screen, COLORS['bg_secondary'], button_rect, border_radius=4)
-                    pygame.draw.rect(self.screen, color, button_rect, 2, border_radius=4)
-                    text_color = color
-                
-                text_surf = self.fonts['normal'].render(player_text, True, text_color)
-                text_x = button_x + (button_width - text_surf.get_width()) // 2
-                text_y = player_y + 4
-                self.screen.blit(text_surf, (text_x, text_y))
-            
-            # Current configuration display
-            config_y = player_y + 35
-            current_config = self.ai_player1_config if selected_player == 1 else self.ai_player2_config
-            
-            config_info = [
-                f"Depth: {current_config.depth}",
-                f"Enabled: {len([h for h, e in current_config.enabled_heuristics.items() if e])}/6 heuristics",
-                f"Speed: {self.ai_move_delay:.1f}s delay",
-                f"Auto-restart: {'ON' if self.auto_restart else 'OFF'}"
-            ]
-            
-            for i, info in enumerate(config_info):
-                info_surf = self.fonts['small'].render(info, True, COLORS['text_secondary'])
-                self.screen.blit(info_surf, (content_rect[0], config_y + i * 18))
-            
-            # Options menu
-            options_y = config_y + 80
-            button_height = 25
-            button_spacing = 3
-            
-            for i, (key, title) in enumerate(options):
-                button_rect = (content_rect[0], options_y + i * (button_height + button_spacing), 
-                             content_rect[2], button_height)
-                
-                is_selected = (i == selected_option)
-                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'small', is_selected)
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 30
-            controls = "TAB: Switch Player | ENTER: Select | B: Back"
-            controls_surf = self.fonts['tiny'].render(controls, True, COLORS['text_muted'])
-            self.screen.blit(controls_surf, (content_rect[0], controls_y))
-            
-            pygame.display.flip()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_TAB:
-                        selected_player = 2 if selected_player == 1 else 1
-                    elif event.key == pygame.K_UP:
-                        selected_option = (selected_option - 1) % len(options)
-                    elif event.key == pygame.K_DOWN:
-                        selected_option = (selected_option + 1) % len(options)
-                    elif event.key == pygame.K_RETURN:
-                        key, _ = options[selected_option]
-                        if key == "P":
-                            self._preset_menu_for_player(selected_player)
-                        elif key == "D":
-                            self._change_depth_for_player(selected_player)
-                        elif key == "H":
-                            self._toggle_heuristics_for_player(selected_player)
-                        elif key == "W":
-                            self._adjust_weights_for_player(selected_player)
-                        elif key == "S":
-                            self._speed_settings_menu()
-                        elif key == "T":
-                            self._enhanced_test_ai_vs_ai()
-                        elif key == "R":
-                            configuring = False
-                            self._start_ai_vs_ai()
-                    elif event.key == pygame.K_p:
-                        self._preset_menu_for_player(selected_player)
-                    elif event.key == pygame.K_d:
-                        self._change_depth_for_player(selected_player)
-                    elif event.key == pygame.K_h:
-                        self._toggle_heuristics_for_player(selected_player)
-                    elif event.key == pygame.K_w:
-                        self._adjust_weights_for_player(selected_player)
-                    elif event.key == pygame.K_s:
-                        self._speed_settings_menu()
-                    elif event.key == pygame.K_t:
-                        self._enhanced_test_ai_vs_ai()
-                    elif event.key == pygame.K_r:
-                        configuring = False
-                        self._start_ai_vs_ai()
-                    elif event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
-                        configuring = False
+    def _reset_board(self):
+        """Reset the game board - DEPRECATED, use _initialize_mode instead."""
+        self._initialize_mode()
 
     def _preset_menu_for_player(self, player: int):
         """Compact preset selection menu."""
@@ -1241,126 +610,6 @@ class ChainReactionGUI:
                     elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
                         toggling = False
 
-    def _adjust_weights_for_player(self, player: int):
-        """Adjust heuristic weights for a specific player in AI vs AI mode."""
-        adjusting = True
-        selected = 0
-        
-        # Get the appropriate config for the player
-        config = self.ai_player1_config if player == 1 else self.ai_player2_config
-        player_color = COLORS['player1'] if player == 1 else COLORS['player2']
-        player_name = 'Red' if player == 1 else 'Blue'
-        
-        # Get only enabled heuristics
-        heuristic_names = [h for h in config.enabled_heuristics.keys() 
-                          if config.enabled_heuristics[h]]
-        
-        if not heuristic_names:
-            # Show message if no heuristics are enabled
-            self._show_message(f"No Enabled Heuristics", f"Enable some heuristics for Player {player} first!")
-            return
-        
-        while adjusting:
-            self.screen.fill(COLORS['bg_primary'])
-            
-            panel_width = min(420, WIDTH - 20)
-            panel_height = min(450, HEIGHT - 20)
-            panel_rect = (10, 10, panel_width, panel_height)
-            content_rect = self.draw_panel(self.screen, panel_rect, f"Adjust Weights - Player {player} ({player_name})")
-            
-            # Player indicator
-            indicator_y = content_rect[1] 
-            indicator_text = f"Configuring {player_name} Player (Player {player})"
-            indicator_surf = self.fonts['header'].render(indicator_text, True, player_color)
-            indicator_x = content_rect[0] + (content_rect[2] - indicator_surf.get_width()) // 2
-            self.screen.blit(indicator_surf, (indicator_x, indicator_y))
-            
-            # Weights list
-            item_height = 30
-            start_y = content_rect[1] + 35
-            
-            for i, heuristic in enumerate(heuristic_names):
-                weight = config.weights[heuristic]
-                y_pos = start_y + i * item_height
-                
-                # Selection highlight
-                if i == selected:
-                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
-                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
-                
-                # Heuristic name and current weight
-                name_text = heuristic.replace('_', ' ').title()
-                display_text = f"{name_text}: {weight:.1f}"
-                
-                name_surf = self.fonts['normal'].render(display_text, True, COLORS['text_primary'])
-                self.screen.blit(name_surf, (content_rect[0], y_pos))
-                
-                # Visual weight bar
-                bar_width = 120
-                bar_height = 12
-                bar_x = content_rect[0] + content_rect[2] - bar_width - 10
-                bar_y = y_pos + 8
-                
-                # Background bar
-                bar_bg_rect = (bar_x, bar_y, bar_width, bar_height)
-                pygame.draw.rect(self.screen, COLORS['bg_secondary'], bar_bg_rect, border_radius=6)
-                pygame.draw.rect(self.screen, COLORS['border'], bar_bg_rect, 1, border_radius=6)
-                
-                # Weight bar (normalize to 0-10 range for display)
-                weight_ratio = min(1.0, weight / 10.0)
-                weight_width = int(bar_width * weight_ratio)
-                if weight_width > 0:
-                    weight_rect = (bar_x + 1, bar_y + 1, weight_width - 2, bar_height - 2)
-                    
-                    # Color based on weight value
-                    if weight <= 3:
-                        color = COLORS['success']
-                    elif weight <= 6:
-                        color = COLORS['warning']
-                    else:
-                        color = COLORS['danger']
-                    
-                    pygame.draw.rect(self.screen, color, weight_rect, border_radius=5)
-                
-                # Weight value display
-                weight_text = f"{weight:.1f}"
-                weight_text_surf = self.fonts['tiny'].render(weight_text, True, COLORS['text_primary'])
-                weight_text_x = bar_x + bar_width + 5
-                weight_text_y = bar_y + 1
-                self.screen.blit(weight_text_surf, (weight_text_x, weight_text_y))
-            
-            # Controls
-            controls_y = content_rect[1] + content_rect[3] - 30
-            controls = ["↑↓: Select | ← →: Adjust Weight (±0.1)", 
-                       "ENTER: Done | ESC: Cancel"]
-            for i, control in enumerate(controls):
-                control_surf = self.fonts['small'].render(control, True, COLORS['text_secondary'])
-                self.screen.blit(control_surf, (content_rect[0], controls_y + i * 15))
-            
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        selected = (selected - 1) % len(heuristic_names)
-                    elif event.key == pygame.K_DOWN:
-                        selected = (selected + 1) % len(heuristic_names)
-                    elif event.key == pygame.K_LEFT:
-                        heuristic = heuristic_names[selected]
-                        current_weight = config.weights[heuristic]
-                        new_weight = max(0.1, current_weight - 0.1)
-                        config.set_weight(heuristic, new_weight)
-                    elif event.key == pygame.K_RIGHT:
-                        heuristic = heuristic_names[selected]
-                        current_weight = config.weights[heuristic]
-                        new_weight = min(10.0, current_weight + 0.1)
-                        config.set_weight(heuristic, new_weight)
-                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
-                        adjusting = False
-
     def _speed_settings_menu(self):
         """Compact speed settings interface."""
         configuring = True
@@ -1407,6 +656,406 @@ class ChainReactionGUI:
                         self.auto_restart = not self.auto_restart
                     elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
                         configuring = False
+
+    def _test_ai_vs_ai(self):
+        """Compact test results display."""
+        testing = True
+        
+        # Create test agents
+        agent1 = ai.MinimaxAgent(player=1, config=self.ai_player1_config)
+        agent2 = ai.MinimaxAgent(player=2, config=self.ai_player2_config)
+        
+        # Test on simple scenario
+        test_state = core.GameState(rows=9, cols=6)
+        test_state.board[2][2].owner = 1
+        test_state.board[2][2].count = 2
+        test_state.board[6][4].owner = 2
+        test_state.board[6][4].count = 1
+        test_state.current_player = 1
+        
+        # Get moves from both agents
+        start_time = time.time()
+        move1 = agent1.choose_move(test_state.clone())
+        time1 = time.time() - start_time
+        
+        start_time = time.time()
+        move2 = agent2.choose_move(test_state.clone())
+        time2 = time.time() - start_time
+        
+        stats1 = agent1.get_search_statistics()
+        stats2 = agent2.get_search_statistics()
+        
+        while testing:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(350, WIDTH - 20)
+            panel_height = min(300, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "Test Results")
+            
+            y_pos = content_rect[1] + 10
+            line_height = 18
+            
+            # Player 1 results
+            p1_results = [
+                f"Player 1 (Red): {move1}",
+                f"  Time: {time1:.3f}s | Nodes: {stats1['nodes_explored']}",
+            ]
+            
+            for result in p1_results:
+                color = COLORS['player1'] if result.startswith("Player") else COLORS['text_secondary']
+                result_surf = self.fonts['small'].render(result, True, color)
+                self.screen.blit(result_surf, (content_rect[0], y_pos))
+                y_pos += line_height
+            
+            y_pos += 10
+            
+            # Player 2 results
+            p2_results = [
+                f"Player 2 (Blue): {move2}",
+                f"  Time: {time2:.3f}s | Nodes: {stats2['nodes_explored']}",
+            ]
+            
+            for result in p2_results:
+                color = COLORS['player2'] if result.startswith("Player") else COLORS['text_secondary']
+                result_surf = self.fonts['small'].render(result, True, color)
+                self.screen.blit(result_surf, (content_rect[0], y_pos))
+                y_pos += line_height
+            
+            # Continue prompt
+            continue_y = content_rect[1] + content_rect[3] - 25
+            continue_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
+            continue_x = content_rect[0] + (content_rect[2] - continue_surf.get_width()) // 2
+            self.screen.blit(continue_surf, (continue_x, continue_y))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    testing = False
+
+    def _ai_config_menu(self): # type: ignore
+        configuring = True
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(300, WIDTH - 40)
+            panel_height = min(200, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Configuration")
+            
+            # Simple configuration display
+            y_pos = content_rect[1] + 20
+            
+            config_text = f"Depth: {self.ai_config.depth}"
+            config_surf = self.fonts['normal'].render(config_text, True, COLORS['text_primary'])
+            self.screen.blit(config_surf, (content_rect[0], y_pos))
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "B: Back"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
+                        configuring = False
+
+    def _ai_vs_ai_config_menu(self):
+        """Compact AI vs AI configuration menu with weight adjustment."""
+        configuring = True
+        selected_player = 1
+        selected_option = 0
+        
+        options = [
+            ("P", "Load Preset"),
+            ("D", "Change Depth"),
+            ("H", "Toggle Heuristics"),
+            ("W", "Adjust Weights"),  
+            ("S", "Speed Settings"),
+            ("T", "Test Config"),
+            ("R", "Start Match"),
+        ]
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            # Main panel
+            panel_width = min(400, WIDTH - 20)
+            panel_height = min(500, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI vs AI Configuration")
+            
+            # Player selector
+            player_y = content_rect[1]
+            for i, (player_num, color, config) in enumerate([(1, COLORS['player1'], self.ai_player1_config), 
+                                                            (2, COLORS['player2'], self.ai_player2_config)]):
+                button_width = content_rect[2] // 2 - 5
+                button_x = content_rect[0] + i * (button_width + 10)
+                button_rect = (button_x, player_y, button_width, 25)
+                
+                is_selected = (selected_player == player_num)
+                player_text = f"Player {player_num} ({'Red' if player_num == 1 else 'Blue'})"
+                
+                if is_selected:
+                    pygame.draw.rect(self.screen, color, button_rect, border_radius=4)
+                    text_color = COLORS['bg_primary']
+                else:
+                    pygame.draw.rect(self.screen, COLORS['bg_secondary'], button_rect, border_radius=4)
+                    pygame.draw.rect(self.screen, color, button_rect, 2, border_radius=4)
+                    text_color = color
+                
+                text_surf = self.fonts['normal'].render(player_text, True, text_color)
+                text_x = button_x + (button_width - text_surf.get_width()) // 2
+                text_y = player_y + 4
+                self.screen.blit(text_surf, (text_x, text_y))
+            
+            # Current configuration display
+            config_y = player_y + 35
+            current_config = self.ai_player1_config if selected_player == 1 else self.ai_player2_config
+            
+            config_info = [
+                f"Depth: {current_config.depth}",
+                f"Enabled: {len([h for h, e in current_config.enabled_heuristics.items() if e])}/6 heuristics",
+                f"Speed: {self.ai_move_delay:.1f}s delay",
+                f"Auto-restart: {'ON' if self.auto_restart else 'OFF'}"
+            ]
+            
+            for i, info in enumerate(config_info):
+                info_surf = self.fonts['small'].render(info, True, COLORS['text_secondary'])
+                self.screen.blit(info_surf, (content_rect[0], config_y + i * 18))
+            
+            # Options menu
+            options_y = config_y + 80
+            button_height = 25
+            button_spacing = 3
+            
+            for i, (key, title) in enumerate(options):
+                button_rect = (content_rect[0], options_y + i * (button_height + button_spacing), 
+                             content_rect[2], button_height)
+                
+                is_selected = (i == selected_option)
+                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'small', is_selected)
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 30
+            controls = "TAB: Switch Player | ENTER: Select | B: Back"
+            controls_surf = self.fonts['tiny'].render(controls, True, COLORS['text_muted'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_TAB:
+                        selected_player = 2 if selected_player == 1 else 1
+                    elif event.key == pygame.K_UP:
+                        selected_option = (selected_option - 1) % len(options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = (selected_option + 1) % len(options)
+                    elif event.key == pygame.K_RETURN:
+                        key, _ = options[selected_option]
+                        if key == "P":
+                            self._preset_menu_for_player(selected_player)
+                        elif key == "D":
+                            self._change_depth_for_player(selected_player)
+                        elif key == "H":
+                            self._toggle_heuristics_for_player(selected_player)
+                        elif key == "W":
+                            self._adjust_weights_for_player(selected_player)  # New weight adjustment
+                        elif key == "S":
+                            self._speed_settings_menu()
+                        elif key == "T":
+                            self._enhanced_test_ai_vs_ai()
+                        elif key == "R":
+                            configuring = False
+                            self._start_ai_vs_ai()
+                    elif event.key == pygame.K_p:
+                        self._preset_menu_for_player(selected_player)
+                    elif event.key == pygame.K_d:
+                        self._change_depth_for_player(selected_player)
+                    elif event.key == pygame.K_h:
+                        self._toggle_heuristics_for_player(selected_player)
+                    elif event.key == pygame.K_w:
+                        self._adjust_weights_for_player(selected_player)  # New hotkey
+                    elif event.key == pygame.K_s:
+                        self._speed_settings_menu()
+                    elif event.key == pygame.K_t:
+                        self._enhanced_test_ai_vs_ai()
+                    elif event.key == pygame.K_r:
+                        configuring = False
+                        self._start_ai_vs_ai()
+                    elif event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
+                        # Return to main menu instead of just exiting config
+                        self.mode = None
+                        configuring = False
+
+    def _adjust_weights_for_player(self, player: int):
+        """Adjust heuristic weights for a specific player in AI vs AI mode."""
+        adjusting = True
+        selected = 0
+        
+        # Get the appropriate config for the player
+        config = self.ai_player1_config if player == 1 else self.ai_player2_config
+        player_color = COLORS['player1'] if player == 1 else COLORS['player2']
+        player_name = 'Red' if player == 1 else 'Blue'
+        
+        # Get only enabled heuristics
+        heuristic_names = [h for h in config.enabled_heuristics.keys() 
+                          if config.enabled_heuristics[h]]
+        
+        if not heuristic_names:
+            # Show message if no heuristics are enabled
+            self._show_message(f"No Enabled Heuristics", f"Enable some heuristics for Player {player} first!")
+            return
+        
+        # Enhanced heuristic descriptions
+        heuristic_descriptions = {
+            'material': 'Count and value orbs on board',
+            'territorial': 'Control territory and board position', 
+            'critical_mass': 'Identify explosion threats',
+            'mobility': 'Evaluate move options available',
+            'chain_potential': 'Assess chain reaction potential',
+            'positional': 'Strategic board positioning'
+        }
+        
+        while adjusting:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(420, WIDTH - 20)
+            panel_height = min(450, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, f"Adjust Weights - Player {player} ({player_name})")
+            
+            # Player indicator
+            indicator_y = content_rect[1] 
+            indicator_text = f"Configuring {player_name} Player (Player {player})"
+            indicator_surf = self.fonts['header'].render(indicator_text, True, player_color)
+            indicator_x = content_rect[0] + (content_rect[2] - indicator_surf.get_width()) // 2
+            self.screen.blit(indicator_surf, (indicator_x, indicator_y))
+            
+            # Weights list
+            item_height = 45
+            start_y = content_rect[1] + 35
+            
+            for i, heuristic in enumerate(heuristic_names):
+                weight = config.weights[heuristic]
+                y_pos = start_y + i * item_height
+                
+                # Selection highlight
+                if i == selected:
+                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
+                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
+                
+                # Heuristic name and current weight
+                name_text = heuristic.replace('_', ' ').title()
+                display_text = f"{name_text}: {weight:.1f}"
+                
+                name_surf = self.fonts['normal'].render(display_text, True, COLORS['text_primary'])
+                self.screen.blit(name_surf, (content_rect[0], y_pos))
+                
+                # Description
+                desc_text = heuristic_descriptions.get(heuristic, "")
+                desc_surf = self.fonts['small'].render(desc_text, True, COLORS['text_muted'])
+                self.screen.blit(desc_surf, (content_rect[0], y_pos + 15))
+                
+                # Visual weight bar
+                bar_width = 120
+                bar_height = 12
+                bar_x = content_rect[0] + content_rect[2] - bar_width - 10
+                bar_y = y_pos + 8
+                
+                # Background bar
+                bar_bg_rect = (bar_x, bar_y, bar_width, bar_height)
+                pygame.draw.rect(self.screen, COLORS['bg_secondary'], bar_bg_rect, border_radius=6)
+                pygame.draw.rect(self.screen, COLORS['border'], bar_bg_rect, 1, border_radius=6)
+                
+                # Weight bar (normalize to 0-10 range for display)
+                weight_ratio = min(1.0, weight / 10.0)
+                weight_width = int(bar_width * weight_ratio)
+                if weight_width > 0:
+                    weight_rect = (bar_x + 1, bar_y + 1, weight_width - 2, bar_height - 2)
+                    
+                    # Color based on weight value
+                    if weight <= 3:
+                        color = COLORS['success']
+                    elif weight <= 6:
+                        color = COLORS['warning']
+                    else:
+                        color = COLORS['danger']
+                    
+                    pygame.draw.rect(self.screen, color, weight_rect, border_radius=5)
+                
+                # Weight value display
+                weight_text = f"{weight:.1f}"
+                weight_text_surf = self.fonts['tiny'].render(weight_text, True, COLORS['text_primary'])
+                weight_text_x = bar_x + bar_width + 5
+                weight_text_y = bar_y + 1
+                self.screen.blit(weight_text_surf, (weight_text_x, weight_text_y))
+            
+            # Instructions and controls
+            controls_y = content_rect[1] + content_rect[3] - 60
+            
+            instructions = [
+                "Weight Guide: 1.0=Low, 3.0=Medium, 5.0=High, 10.0=Maximum",
+                "Higher weights make the heuristic more influential in decisions"
+            ]
+            
+            for i, instruction in enumerate(instructions):
+                inst_surf = self.fonts['tiny'].render(instruction, True, COLORS['text_muted'])
+                self.screen.blit(inst_surf, (content_rect[0], controls_y + i * 12))
+            
+            controls_y += 30
+            controls = ["↑↓: Select | ← →: Adjust Weight (±0.1) | Shift+← →: Fine Adjust (±0.05)", 
+                       "ENTER: Done | ESC: Cancel"]
+            for i, control in enumerate(controls):
+                control_surf = self.fonts['small'].render(control, True, COLORS['text_secondary'])
+                self.screen.blit(control_surf, (content_rect[0], controls_y + i * 15))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(heuristic_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(heuristic_names)
+                    elif event.key == pygame.K_LEFT:
+                        heuristic = heuristic_names[selected]
+                        current_weight = config.weights[heuristic]
+                        # Fine adjustment with Shift, normal adjustment without
+                        keys = pygame.key.get_pressed()
+                        adjustment = 0.05 if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else 0.1
+                        new_weight = max(0.1, current_weight - adjustment)
+                        config.set_weight(heuristic, new_weight)
+                    elif event.key == pygame.K_RIGHT:
+                        heuristic = heuristic_names[selected]
+                        current_weight = config.weights[heuristic]
+                        # Fine adjustment with Shift, normal adjustment without
+                        keys = pygame.key.get_pressed()
+                        adjustment = 0.05 if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else 0.1
+                        new_weight = min(10.0, current_weight + adjustment)
+                        config.set_weight(heuristic, new_weight)
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        adjusting = False
 
     def _enhanced_test_ai_vs_ai(self):
         """Enhanced test with weight information display."""
@@ -1460,7 +1109,18 @@ class ChainReactionGUI:
                 self.screen.blit(result_surf, (content_rect[0], y_pos))
                 y_pos += line_height
             
-            y_pos += 5
+            # Player 1 top weights
+            p1_weights = [(h, w) for h, w in self.ai_player1_config.weights.items() 
+                         if self.ai_player1_config.enabled_heuristics[h]]
+            p1_weights.sort(key=lambda x: x[1], reverse=True)
+            
+            weight_text = "  Top weights: " + ", ".join([f"{h.replace('_', ' ').title()}({w:.1f})" 
+                                                       for h, w in p1_weights[:3]])
+            if len(weight_text) > 60:  # Truncate if too long
+                weight_text = weight_text[:57] + "..."
+            weight_surf = self.fonts['tiny'].render(weight_text, True, COLORS['text_muted'])
+            self.screen.blit(weight_surf, (content_rect[0], y_pos))
+            y_pos += line_height + 5
             
             # Player 2 results
             p2_results = [
@@ -1475,7 +1135,30 @@ class ChainReactionGUI:
                 self.screen.blit(result_surf, (content_rect[0], y_pos))
                 y_pos += line_height
             
-            y_pos += 10
+            # Player 2 top weights
+            p2_weights = [(h, w) for h, w in self.ai_player2_config.weights.items() 
+                         if self.ai_player2_config.enabled_heuristics[h]]
+            p2_weights.sort(key=lambda x: x[1], reverse=True)
+            
+            weight_text = "  Top weights: " + ", ".join([f"{h.replace('_', ' ').title()}({w:.1f})" 
+                                                       for h, w in p2_weights[:3]])
+            if len(weight_text) > 60:  # Truncate if too long
+                weight_text = weight_text[:57] + "..."
+            weight_surf = self.fonts['tiny'].render(weight_text, True, COLORS['text_muted'])
+            self.screen.blit(weight_surf, (content_rect[0], y_pos))
+            y_pos += line_height + 10
+            
+            # Configuration comparison
+            comp_title = "Configuration Differences:"
+            comp_surf = self.fonts['small'].render(comp_title, True, COLORS['text_primary'])
+            self.screen.blit(comp_surf, (content_rect[0], y_pos))
+            y_pos += line_height + 5
+            
+            if self.ai_player1_config.depth != self.ai_player2_config.depth:
+                diff_text = f"  Search depth: Player 1({self.ai_player1_config.depth}) vs Player 2({self.ai_player2_config.depth})"
+                diff_surf = self.fonts['tiny'].render(diff_text, True, COLORS['warning'])
+                self.screen.blit(diff_surf, (content_rect[0], y_pos))
+                y_pos += line_height
             
             # Continue prompt
             continue_y = content_rect[1] + content_rect[3] - 25
@@ -1502,6 +1185,14 @@ class ChainReactionGUI:
         self.state.reset()
         self.visual_state.reset()
         print("🤖 AI vs AI match started!")
+
+    def _write_human_move(self): # type: ignore
+        """Write human move to file for AI engine."""
+        _write_state("Human Move:", self.state)
+
+    def _wait_ai(self):
+        """Wait for AI move from engine."""
+        self.state = _read_until("AI Move:")
 
     def create_animated_move(self, r: int, c: int) -> bool:
         """Move sequence."""
@@ -1674,10 +1365,6 @@ class ChainReactionGUI:
             self.last_ai_check_time = time.time()
             print("Waiting for AI engine response...")
 
-    def _write_human_move(self):
-        """Write human move to file for AI engine."""
-        _write_state("Human Move:", self.state)
-
     def _check_for_ai_response(self):
         """Non-blocking check for AI response from external engine."""
         if not self.waiting_for_ai:
@@ -1845,6 +1532,29 @@ class ChainReactionGUI:
             state_match_bonus += 0.1
         
         return (matching_cells / total_cells) + state_match_bonus
+
+    def _find_ai_move(self, old_state: core.GameState, new_state: core.GameState) -> Optional[Tuple[int, int]]: # type: ignore
+        """Find the move made by comparing two game states (legacy method)."""
+        return self._find_ai_move_improved(old_state, new_state)
+
+    def _find_ai_move(self, old_state: core.GameState, new_state: core.GameState) -> Optional[Tuple[int, int]]:
+        """Find the move made by comparing two game states."""
+        # Look for the cell where count increased
+        for r in range(old_state.rows):
+            for c in range(old_state.cols):
+                old_cell = old_state.board[r][c]
+                new_cell = new_state.board[r][c]
+                
+                # Check if this cell had an orb added
+                if (old_cell.owner in (None, 2) and new_cell.owner == 2 and 
+                    new_cell.count > old_cell.count):
+                    return (r, c)
+                
+                # Also check if this was an empty cell that got an orb
+                if old_cell.owner is None and new_cell.owner == 2:
+                    return (r, c)
+        
+        return None
 
     def update_ai_vs_ai(self):
         """Update AI vs AI game state"""
@@ -2100,6 +1810,517 @@ class ChainReactionGUI:
         controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
         controls_x = BOARD_WIDTH - controls_surf.get_width() - 10
         self.screen.blit(controls_surf, (controls_x, BOARD_HEIGHT + 32))
+
+    def _write_human_move(self):
+        """Write human move to file for AI engine."""
+        _write_state("Human Move:", self.state)
+        
+    def _ai_config_menu(self):
+        """Main AI configuration menu for PVAI mode."""
+        configuring = True
+        selected_option = 0
+        
+        options = [
+            ("P", "Load Preset"),
+            ("D", "Change Depth"),
+            ("H", "Toggle Heuristics"),
+            ("W", "Adjust Weights"),
+            ("T", "Test Config"),
+            ("A", "Apply Changes"),
+        ]
+        
+        while configuring:
+            self.screen.fill(COLORS['bg_primary'])
+            
+            panel_width = min(380, WIDTH - 20)
+            panel_height = min(450, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Configuration")
+            
+            # Current configuration display
+            config_y = content_rect[1] + 10
+            
+            config_info = [
+                f"Depth: {self.ai_config.depth}",
+                f"Timeout: {self.ai_config.timeout:.1f}s",
+                f"Enabled: {len([h for h, e in self.ai_config.enabled_heuristics.items() if e])}/6 heuristics",
+                f"Transposition Table: {'ON' if self.ai_config.use_transposition_table else 'OFF'}",
+                f"Move Ordering: {'ON' if self.ai_config.use_move_ordering else 'OFF'}",
+            ]
+            
+            for i, info in enumerate(config_info):
+                info_surf = self.fonts['small'].render(info, True, COLORS['text_secondary'])
+                self.screen.blit(info_surf, (content_rect[0], config_y + i * 18))
+            
+            # Options menu
+            options_y = config_y + len(config_info) * 18 + 20
+            button_height = 25
+            button_spacing = 3
+            
+            for i, (key, title) in enumerate(options):
+                button_rect = (content_rect[0], options_y + i * (button_height + button_spacing), 
+                             content_rect[2], button_height)
+                
+                is_selected = (i == selected_option)
+                self.draw_button(self.screen, f"{key}. {title}", button_rect, 'small', is_selected)
+            
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 30
+            controls = "↑↓: Select | ENTER: Choose | B: Back"
+            controls_surf = self.fonts['tiny'].render(controls, True, COLORS['text_muted'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+            
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = (selected_option - 1) % len(options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = (selected_option + 1) % len(options)
+                    elif event.key == pygame.K_RETURN:
+                        key, _ = options[selected_option]
+                        if key == "P":
+                            self._preset_menu_for_ai_config()
+                        elif key == "D":
+                            self._change_depth_for_ai_config()
+                        elif key == "H":
+                            self._toggle_heuristics_for_ai_config()
+                        elif key == "W":
+                            self._adjust_weights_for_ai_config()
+                        elif key == "T":
+                            self._test_ai_config()
+                        elif key == "A":
+                            self._apply_ai_config_changes()
+                    elif event.key == pygame.K_p:
+                        self._preset_menu_for_ai_config()
+                    elif event.key == pygame.K_d:
+                        self._change_depth_for_ai_config()
+                    elif event.key == pygame.K_h:
+                        self._toggle_heuristics_for_ai_config()
+                    elif event.key == pygame.K_w:
+                        self._adjust_weights_for_ai_config()
+                    elif event.key == pygame.K_t:
+                        self._test_ai_config()
+                    elif event.key == pygame.K_a:
+                        self._apply_ai_config_changes()
+                    elif event.key == pygame.K_b or event.key == pygame.K_ESCAPE:
+                        configuring = False
+
+    def _preset_menu_for_ai_config(self):
+        """Preset selection menu for AI config."""
+        selecting = True
+        selected = 0
+        preset_names = list(self.ai_presets.keys())
+            
+        descriptions = {
+        "Balanced": "Well-rounded strategy",
+        "Aggressive": "High-risk, high-reward", 
+        "Defensive": "Territory focused",
+        "Tactical": "Threat and reaction focused",
+        "Strategic": "Long-term positioning",
+        "Fast": "Quick decisions, lower depth",
+        "Material Only": "Orb counting only",
+        "Unlimited Explosions": "No explosion limits"
+}
+            
+        while selecting:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(350, WIDTH - 20)
+            panel_height = min(550, HEIGHT - 20)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Presets")
+                
+            button_height = 28
+            button_spacing = 3
+            start_y = content_rect[1] + 5
+            
+            for i, preset_name in enumerate(preset_names):
+                button_rect = (content_rect[0], start_y + i * (button_height + button_spacing + 20), 
+                            content_rect[2], button_height)
+                    
+                is_selected = (i == selected)
+                self.draw_button(self.screen, preset_name, button_rect, 'normal', is_selected)
+                    
+                # Description
+                desc_y = button_rect[1] + button_height + 2
+                desc_surf = self.fonts['small'].render(descriptions.get(preset_name, ""), True, COLORS['text_muted'])
+                self.screen.blit(desc_surf, (button_rect[0] + 5, desc_y))
+                
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "↑↓: Select | ENTER: Load | ESC: Cancel"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+                
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(preset_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(preset_names)
+                    elif event.key == pygame.K_RETURN:
+                        preset_name = preset_names[selected]
+                        self.ai_config = self.ai_presets[preset_name]()
+                        selecting = False
+                    elif event.key == pygame.K_ESCAPE:
+                        selecting = False
+
+    def _change_depth_for_ai_config(self):
+        """Depth adjustment for AI config."""
+        changing = True
+            
+        while changing:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(280, WIDTH - 40)
+            panel_height = min(220, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Search Depth")
+                
+            # Current depth display
+            depth_text = f"Current: {self.ai_config.depth}"
+            depth_surf = self.fonts['title'].render(depth_text, True, COLORS['text_primary'])
+            depth_x = content_rect[0] + (content_rect[2] - depth_surf.get_width()) // 2
+            self.screen.blit(depth_surf, (depth_x, content_rect[1] + 20))
+                
+            # Range info
+            range_text = f"Range: {ai.MIN_DEPTH} - {ai.MAX_DEPTH}"
+            range_surf = self.fonts['small'].render(range_text, True, COLORS['text_secondary'])
+            range_x = content_rect[0] + (content_rect[2] - range_surf.get_width()) // 2
+            self.screen.blit(range_surf, (range_x, content_rect[1] + 50))
+                
+            # Description
+            desc_text = "Higher = smarter but slower"
+            desc_surf = self.fonts['small'].render(desc_text, True, COLORS['text_muted'])
+            desc_x = content_rect[0] + (content_rect[2] - desc_surf.get_width()) // 2
+            self.screen.blit(desc_surf, (desc_x, content_rect[1] + 70))
+                
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 40
+            controls = "← → Adjust | ENTER: Confirm"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_muted'])
+            controls_x = content_rect[0] + (content_rect[2] - controls_surf.get_width()) // 2
+            self.screen.blit(controls_surf, (controls_x, controls_y))
+                
+            pygame.display.flip()
+                
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.ai_config.set_depth(self.ai_config.depth - 1)
+                    elif event.key == pygame.K_RIGHT:
+                        self.ai_config.set_depth(self.ai_config.depth + 1)
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        changing = False
+
+    def _toggle_heuristics_for_ai_config(self):
+        """Heuristics toggle for AI config."""
+        toggling = True
+        selected = 0
+        heuristic_names = list(self.ai_config.enabled_heuristics.keys())
+            
+        heuristic_descriptions = {
+            'material': 'Count and value orbs',
+            'territorial': 'Control territory',
+            'critical_mass': 'Explosion threats',
+            'mobility': 'Move options',
+            'chain_potential': 'Chain reactions',
+            'positional': 'Board position'
+        }
+            
+        while toggling:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(400, WIDTH - 20)
+            panel_height = min(420, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Heuristics")
+                
+            # Heuristics list
+            item_height = 35
+            start_y = content_rect[1] + 10
+                
+            for i, heuristic in enumerate(heuristic_names):
+                enabled = self.ai_config.enabled_heuristics[heuristic]
+                y_pos = start_y + i * item_height
+                    
+                    # Selection highlight
+                if i == selected:
+                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
+                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
+                    
+                # Status indicator
+                status_color = COLORS['success'] if enabled else COLORS['text_muted']
+                status_text = "●" if enabled else "○"
+                status_surf = self.fonts['normal'].render(status_text, True, status_color)
+                self.screen.blit(status_surf, (content_rect[0], y_pos))
+                    
+                # Heuristic name and weight
+                name_text = heuristic.replace('_', ' ').title()
+                weight = self.ai_config.weights.get(heuristic, 0)
+                if enabled:
+                    display_text = f"{name_text} (Weight: {weight:.1f})"
+                    name_color = COLORS['text_primary']
+                else:
+                    display_text = f"{name_text} (Disabled)"
+                    name_color = COLORS['text_muted']
+                    
+                name_surf = self.fonts['normal'].render(display_text, True, name_color)
+                self.screen.blit(name_surf, (content_rect[0] + 25, y_pos))
+                    
+                # Description
+                desc_text = heuristic_descriptions.get(heuristic, "")
+                desc_surf = self.fonts['small'].render(desc_text, True, COLORS['text_muted'])
+                self.screen.blit(desc_surf, (content_rect[0] + 25, y_pos + 15))
+                
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 25
+            controls = "↑↓: Select | SPACE: Toggle | ENTER: Done"
+            controls_surf = self.fonts['small'].render(controls, True, COLORS['text_secondary'])
+            self.screen.blit(controls_surf, (content_rect[0], controls_y))
+                
+            pygame.display.flip()
+                
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(heuristic_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(heuristic_names)
+                    elif event.key == pygame.K_SPACE:
+                        heuristic = heuristic_names[selected]
+                        current = self.ai_config.enabled_heuristics[heuristic]
+                        self.ai_config.enabled_heuristics[heuristic] = not current
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        toggling = False
+
+    def _adjust_weights_for_ai_config(self):
+        """Adjust weights for AI config."""
+        adjusting = True
+        selected = 0
+        heuristic_names = [h for h in self.ai_config.enabled_heuristics.keys() 
+                        if self.ai_config.enabled_heuristics[h]]
+            
+        if not heuristic_names:
+            # Show message if no heuristics are enabled
+            self._show_message("No Enabled Heuristics", "Enable some heuristics first!")
+            return
+            
+        while adjusting:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(380, WIDTH - 20)
+            panel_height = min(400, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "Adjust Weights")
+                
+            # Weights list
+            item_height = 30
+            start_y = content_rect[1] + 10
+                
+            for i, heuristic in enumerate(heuristic_names):
+                weight = self.ai_config.weights[heuristic]
+                y_pos = start_y + i * item_height
+                    
+                # Selection highlight
+                if i == selected:
+                    highlight_rect = (content_rect[0] - 5, y_pos - 2, content_rect[2] + 10, item_height - 5)
+                    self.draw_rounded_rect(self.screen, COLORS['highlight'], highlight_rect, 4)
+                    
+                # Heuristic name and weight
+                name_text = heuristic.replace('_', ' ').title()
+                display_text = f"{name_text}: {weight:.1f}"
+                    
+                name_surf = self.fonts['normal'].render(display_text, True, COLORS['text_primary'])
+                self.screen.blit(name_surf, (content_rect[0], y_pos))
+                    
+                # Weight bar
+                bar_width = 100
+                bar_height = 8
+                bar_x = content_rect[0] + content_rect[2] - bar_width - 10
+                bar_y = y_pos + 8
+                    
+                # Background bar
+                bar_bg_rect = (bar_x, bar_y, bar_width, bar_height)
+                pygame.draw.rect(self.screen, COLORS['bg_secondary'], bar_bg_rect, border_radius=4)
+                    
+                # Weight bar (normalize to 0-10 range for display)
+                weight_ratio = min(1.0, weight / 10.0)
+                weight_width = int(bar_width * weight_ratio)
+                if weight_width > 0:
+                    weight_rect = (bar_x, bar_y, weight_width, bar_height)
+                    color = COLORS['success'] if weight <= 5 else COLORS['warning'] if weight <= 8 else COLORS['danger']
+                    pygame.draw.rect(self.screen, color, weight_rect, border_radius=4)
+                
+            # Controls
+            controls_y = content_rect[1] + content_rect[3] - 40
+            controls = ["↑↓: Select | ← → Adjust Weight", "ENTER: Done | ESC: Cancel"]
+            for i, control in enumerate(controls):
+                control_surf = self.fonts['small'].render(control, True, COLORS['text_muted'])
+                self.screen.blit(control_surf, (content_rect[0], controls_y + i * 15))
+                
+            pygame.display.flip()
+                
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(heuristic_names)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(heuristic_names)
+                    elif event.key == pygame.K_LEFT:
+                        heuristic = heuristic_names[selected]
+                        current_weight = self.ai_config.weights[heuristic]
+                        new_weight = max(0.1, current_weight - 0.1)
+                        self.ai_config.set_weight(heuristic, new_weight)
+                    elif event.key == pygame.K_RIGHT:
+                        heuristic = heuristic_names[selected]
+                        current_weight = self.ai_config.weights[heuristic]
+                        new_weight = min(10.0, current_weight + 0.1)
+                        self.ai_config.set_weight(heuristic, new_weight)
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                        adjusting = False
+
+    def _test_ai_config(self):
+        """Test current AI configuration."""
+        testing = True
+            
+        # Create test agent with current config
+        test_agent = ai.MinimaxAgent(player=2, config=self.ai_config)
+            
+        # Create test scenario
+        test_state = core.GameState(rows=9, cols=6)
+        test_state.board[2][2].owner = 1
+        test_state.board[2][2].count = 2
+        test_state.board[6][4].owner = 2
+        test_state.board[6][4].count = 1
+        test_state.current_player = 2
+            
+        # Get AI move and stats
+        start_time = time.time()
+        try:
+            ai_move = test_agent.choose_move(test_state.clone())
+            test_time = time.time() - start_time
+            stats = test_agent.get_search_statistics()
+            success = True
+        except Exception as e:
+            test_time = time.time() - start_time
+            error_msg = str(e)
+            success = False
+            
+        while testing:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(380, WIDTH - 20)
+            panel_height = min(350, HEIGHT - 20)
+            panel_rect = (10, 10, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, "AI Test Results")
+                
+            y_pos = content_rect[1] + 10
+            line_height = 20
+                
+            if success:
+                results = [
+                    f"✓ Test completed successfully",
+                    f"AI Move: {ai_move}",
+                    f"Time: {test_time:.3f}s",
+                    f"Nodes Explored: {stats['nodes_explored']}",
+                    f"Search Depth: {stats['search_depth']}",
+                    f"Alpha-Beta Cutoffs: {stats['alpha_beta_cutoffs']}",
+                    f"Table Hit Rate: {stats['hit_rate_percent']:.1f}%",
+                ]
+                    
+                for i, result in enumerate(results):
+                    color = COLORS['success'] if result.startswith("✓") else COLORS['text_primary']
+                    result_surf = self.fonts['small'].render(result, True, color)
+                    self.screen.blit(result_surf, (content_rect[0], y_pos + i * line_height))
+            else:
+                error_results = [
+                    f"✗ Test failed",
+                    f"Time: {test_time:.3f}s",
+                    f"Error: {error_msg[:50]}{'...' if len(error_msg) > 50 else ''}",
+                ]
+                    
+                for i, result in enumerate(error_results):
+                    color = COLORS['danger'] if result.startswith("✗") else COLORS['text_primary']
+                    result_surf = self.fonts['small'].render(result, True, color)
+                    self.screen.blit(result_surf, (content_rect[0], y_pos + i * line_height))
+                
+            # Continue prompt
+            continue_y = content_rect[1] + content_rect[3] - 25
+            continue_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
+            continue_x = content_rect[0] + (content_rect[2] - continue_surf.get_width()) // 2
+            self.screen.blit(continue_surf, (continue_x, continue_y))
+                
+            pygame.display.flip()
+                
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    testing = False
+
+    def _apply_ai_config_changes(self):
+        """Apply and save AI configuration changes."""
+        self._show_message("Configuration Applied", "AI settings have been updated!")
+
+    def _show_message(self, title: str, message: str):
+        """Show a simple message dialog."""
+        showing = True
+            
+        while showing:
+            self.screen.fill(COLORS['bg_primary'])
+                
+            panel_width = min(320, WIDTH - 40)
+            panel_height = min(180, HEIGHT - 40)
+            panel_x = (WIDTH - panel_width) // 2
+            panel_y = (HEIGHT - panel_height) // 2
+            panel_rect = (panel_x, panel_y, panel_width, panel_height)
+            content_rect = self.draw_panel(self.screen, panel_rect, title)
+                
+            # Message
+            message_surf = self.fonts['normal'].render(message, True, COLORS['text_primary'])
+            message_x = content_rect[0] + (content_rect[2] - message_surf.get_width()) // 2
+            message_y = content_rect[1] + 30
+            self.screen.blit(message_surf, (message_x, message_y))
+                
+            # OK button
+            ok_y = content_rect[1] + content_rect[3] - 40
+            ok_surf = self.fonts['small'].render("Press any key to continue", True, COLORS['text_muted'])
+            ok_x = content_rect[0] + (content_rect[2] - ok_surf.get_width()) // 2
+            self.screen.blit(ok_surf, (ok_x, ok_y))
+                
+            pygame.display.flip()
+                
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    showing = False
 
     def run(self):
         """Main game loop with proper mode handling."""

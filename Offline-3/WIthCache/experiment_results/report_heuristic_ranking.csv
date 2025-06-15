@@ -1,0 +1,7 @@
+Rank,Heuristic,Win Rate,Avg Moves,Avg Duration (s),Assessment
+1,Critical Mass,0.900,98.2,1.3,Excellent
+2,Mobility,0.850,100.0,1.4,Excellent
+3,Chain,0.800,99.6,1.8,Good
+4,Material,0.800,97.9,1.9,Good
+5,Territorial,0.550,101.3,1.6,Poor
+6,Positional,0.550,99.5,2.3,Poor

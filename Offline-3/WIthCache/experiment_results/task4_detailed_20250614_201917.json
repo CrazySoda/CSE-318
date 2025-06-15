@@ -1,0 +1,2298 @@
+[
+  {
+    "config1_name": "random",
+    "config2_name": "balanced",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 10,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.26666666666667,
+    "avg_game_duration": 3.9481772740681964,
+    "min_moves": 84,
+    "max_moves": 108,
+    "std_moves": 5.560918046852473,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 295.68007530898643,
+    "avg_search_time_p1": 0.0006333840368203538,
+    "avg_search_time_p2": 0.07923961941575781,
+    "total_experiment_time": 59.228787899017334,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.4690709114074707,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 270.3541666666667,
+        "avg_search_time_p1": 0.0006130337715148926,
+        "avg_search_time_p2": 0.07159515221913655
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 84,
+        "duration": 4.173964738845825,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 389.8809523809524,
+        "avg_search_time_p1": 0.0005366064253307524,
+        "avg_search_time_p2": 0.09871003741309756
+      },
+      {
+        "game_number": 3,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.5610458850860596,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 272.7916666666667,
+        "avg_search_time_p1": 0.0005748371283213297,
+        "avg_search_time_p2": 0.07346653441588084
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 105,
+        "duration": 4.280829668045044,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 298.3269230769231,
+        "avg_search_time_p1": 0.000636145753680535,
+        "avg_search_time_p2": 0.08147952189812294
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.2901716232299805,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 226.42,
+        "avg_search_time_p1": 0.0004790353775024414,
+        "avg_search_time_p2": 0.06503037452697753
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 94,
+        "duration": 4.04172945022583,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 346.29787234042556,
+        "avg_search_time_p1": 0.000662671758773479,
+        "avg_search_time_p2": 0.0851481518846877
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 108,
+        "duration": 3.935030937194824,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 267.037037037037,
+        "avg_search_time_p1": 0.0007034407721625434,
+        "avg_search_time_p2": 0.07200022980018898
+      },
+      {
+        "game_number": 8,
+        "winner": 1,
+        "moves": 103,
+        "duration": 4.298817873001099,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 311.98039215686276,
+        "avg_search_time_p1": 0.0007186440321115347,
+        "avg_search_time_p2": 0.08337782411014333
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.3954343795776367,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 245.28,
+        "avg_search_time_p1": 0.0006778240203857422,
+        "avg_search_time_p2": 0.06700638771057128
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 99,
+        "duration": 3.6491024494171143,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 277.7142857142857,
+        "avg_search_time_p1": 0.0006618928909301757,
+        "avg_search_time_p2": 0.07369242882242008
+      },
+      {
+        "game_number": 11,
+        "winner": 1,
+        "moves": 101,
+        "duration": 4.996952533721924,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 354.26,
+        "avg_search_time_p1": 0.0007509297015620213,
+        "avg_search_time_p2": 0.09897124290466308
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.055290222167969,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 305.02,
+        "avg_search_time_p1": 0.000670766830444336,
+        "avg_search_time_p2": 0.08032939910888671
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 104,
+        "duration": 4.149198532104492,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 292.61538461538464,
+        "avg_search_time_p1": 0.0006594841296856219,
+        "avg_search_time_p2": 0.07897408191974346
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.716202735900879,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 282.1,
+        "avg_search_time_p1": 0.000535120964050293,
+        "avg_search_time_p2": 0.07366620540618897
+      },
+      {
+        "game_number": 15,
+        "winner": 1,
+        "moves": 99,
+        "duration": 4.209817171096802,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 295.1224489795918,
+        "avg_search_time_p1": 0.0006203269958496094,
+        "avg_search_time_p2": 0.08514671909565828
+      }
+    ],
+    "experiment_type": "depth_analysis",
+    "parameter_tested": "depth_2"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "balanced",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 3,
+    "player2_wins": 12,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.53333333333333,
+    "avg_game_duration": 3.7860960006713866,
+    "min_moves": 94,
+    "max_moves": 105,
+    "std_moves": 2.614975188810639,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 279.4161455651546,
+    "avg_search_time_p1": 0.0006050564802278571,
+    "avg_search_time_p2": 0.07544660513663025,
+    "total_experiment_time": 56.80376696586609,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 100,
+        "duration": 2.8215982913970947,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 207.48,
+        "avg_search_time_p1": 0.0007265472412109375,
+        "avg_search_time_p2": 0.055537323951721194
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 98,
+        "duration": 3.366495370864868,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 239.10204081632654,
+        "avg_search_time_p1": 0.0005565954714405293,
+        "avg_search_time_p2": 0.06790691979077397
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 97,
+        "duration": 3.20817494392395,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 242.6875,
+        "avg_search_time_p1": 0.0006030043777154417,
+        "avg_search_time_p2": 0.0660942792892456
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 98,
+        "duration": 4.169042348861694,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 309.3673469387755,
+        "avg_search_time_p1": 0.0005130962449677136,
+        "avg_search_time_p2": 0.08444292204720634
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 98,
+        "duration": 3.7393476963043213,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 257.0612244897959,
+        "avg_search_time_p1": 0.0006143657528624243,
+        "avg_search_time_p2": 0.07546854505733568
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.069439888000488,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 297.8627450980392,
+        "avg_search_time_p1": 0.0006709426057104971,
+        "avg_search_time_p2": 0.07904232249540441
+      },
+      {
+        "game_number": 7,
+        "winner": 1,
+        "moves": 99,
+        "duration": 3.608104705810547,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 279.6530612244898,
+        "avg_search_time_p1": 0.0006042003631591796,
+        "avg_search_time_p2": 0.07281046497578524
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.41776967048645,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 227.54901960784315,
+        "avg_search_time_p1": 0.0005742568595736634,
+        "avg_search_time_p2": 0.06627999567518048
+      },
+      {
+        "game_number": 9,
+        "winner": 1,
+        "moves": 105,
+        "duration": 3.903505325317383,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 275.7307692307692,
+        "avg_search_time_p1": 0.0007197811918438605,
+        "avg_search_time_p2": 0.07423556309479934
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.939753770828247,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 289.37254901960785,
+        "avg_search_time_p1": 0.0005932976217830882,
+        "avg_search_time_p2": 0.07646507842867982
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 94,
+        "duration": 3.7830753326416016,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 273.17021276595744,
+        "avg_search_time_p1": 0.0006191831953982089,
+        "avg_search_time_p2": 0.07972022827635421
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 98,
+        "duration": 3.1575469970703125,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 228.28571428571428,
+        "avg_search_time_p1": 0.000491502333660515,
+        "avg_search_time_p2": 0.06380264126524633
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.40303111076355,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 350.88,
+        "avg_search_time_p1": 0.0006816434860229492,
+        "avg_search_time_p2": 0.08723492145538331
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 100,
+        "duration": 5.52794337272644,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 429.46,
+        "avg_search_time_p1": 0.0005083227157592773,
+        "avg_search_time_p2": 0.10990864276885987
+      },
+      {
+        "game_number": 15,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.6766111850738525,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 283.58,
+        "avg_search_time_p1": 0.0005991077423095703,
+        "avg_search_time_p2": 0.07274922847747803
+      }
+    ],
+    "experiment_type": "depth_analysis",
+    "parameter_tested": "depth_3"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "balanced",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "balanced",
+      "depth": 4,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 2,
+    "player2_wins": 13,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.73333333333333,
+    "avg_game_duration": 4.107745424906413,
+    "min_moves": 94,
+    "max_moves": 104,
+    "std_moves": 3.081434421700078,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 323.2955416990582,
+    "avg_search_time_p1": 0.0005826368106490953,
+    "avg_search_time_p2": 0.08167016268037676,
+    "total_experiment_time": 61.62786316871643,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 94,
+        "duration": 3.9119935035705566,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 338.468085106383,
+        "avg_search_time_p1": 0.0005970965040490982,
+        "avg_search_time_p2": 0.08257169926420171
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 100,
+        "duration": 5.283504247665405,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 420.8,
+        "avg_search_time_p1": 0.00043933391571044923,
+        "avg_search_time_p2": 0.10510744571685791
+      },
+      {
+        "game_number": 3,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.329106569290161,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 331.58,
+        "avg_search_time_p1": 0.0006754970550537109,
+        "avg_search_time_p2": 0.08571162700653076
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 94,
+        "duration": 3.697622060775757,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 294.74468085106383,
+        "avg_search_time_p1": 0.0005984610699592752,
+        "avg_search_time_p2": 0.07782460780853921
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 98,
+        "duration": 4.668520450592041,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 366.6326530612245,
+        "avg_search_time_p1": 0.0005199325327970544,
+        "avg_search_time_p2": 0.0944969994681222
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.027881383895874,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 303.4117647058824,
+        "avg_search_time_p1": 0.0005743269826851639,
+        "avg_search_time_p2": 0.07826578383352242
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 102,
+        "duration": 2.915842294692993,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 205.98039215686273,
+        "avg_search_time_p1": 0.0007120207244274663,
+        "avg_search_time_p2": 0.05628144039827235
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.54681658744812,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 273.92,
+        "avg_search_time_p1": 0.000569305419921875,
+        "avg_search_time_p2": 0.07020426750183105
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 104,
+        "duration": 6.166980028152466,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 554.8461538461538,
+        "avg_search_time_p1": 0.0006547065881582407,
+        "avg_search_time_p2": 0.11780403669063862
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 99,
+        "duration": 4.318834543228149,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 344.9795918367347,
+        "avg_search_time_p1": 0.0003549098968505859,
+        "avg_search_time_p2": 0.0876420176759058
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 102,
+        "duration": 5.446156024932861,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 479.8627450980392,
+        "avg_search_time_p1": 0.0006015768238142425,
+        "avg_search_time_p2": 0.10603623296700272
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.165585994720459,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 205.4313725490196,
+        "avg_search_time_p1": 0.0006820127075793696,
+        "avg_search_time_p2": 0.06122206706626743
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.662534475326538,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 265.56,
+        "avg_search_time_p1": 0.000471501350402832,
+        "avg_search_time_p2": 0.07259568691253662
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.130007743835449,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 222.66666666666666,
+        "avg_search_time_p1": 0.0007014622290929159,
+        "avg_search_time_p2": 0.06444341937700908
+      },
+      {
+        "game_number": 15,
+        "winner": 1,
+        "moves": 103,
+        "duration": 3.3447954654693604,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 240.54901960784315,
+        "avg_search_time_p1": 0.0005874083592341497,
+        "avg_search_time_p2": 0.06484510851841346
+      }
+    ],
+    "experiment_type": "depth_analysis",
+    "parameter_tested": "depth_4"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "balanced",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "balanced",
+      "depth": 5,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 10,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 98.73333333333333,
+    "avg_game_duration": 3.977372709910075,
+    "min_moves": 94,
+    "max_moves": 105,
+    "std_moves": 3.4737107920301407,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 310.676270672699,
+    "avg_search_time_p1": 0.0005879133626042287,
+    "avg_search_time_p2": 0.08017032140693381,
+    "total_experiment_time": 59.67140340805054,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 1,
+        "moves": 105,
+        "duration": 3.9091713428497314,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 285.65384615384613,
+        "avg_search_time_p1": 0.0005749756435178361,
+        "avg_search_time_p2": 0.07451247251950778
+      },
+      {
+        "game_number": 2,
+        "winner": 1,
+        "moves": 101,
+        "duration": 4.514124631881714,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 349.12,
+        "avg_search_time_p1": 0.0004251283757826861,
+        "avg_search_time_p2": 0.08964498519897461
+      },
+      {
+        "game_number": 3,
+        "winner": 2,
+        "moves": 96,
+        "duration": 5.220908164978027,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 489.375,
+        "avg_search_time_p1": 0.000615398089090983,
+        "avg_search_time_p2": 0.10795012613137563
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.407620668411255,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 231.8,
+        "avg_search_time_p1": 0.0005798959732055665,
+        "avg_search_time_p2": 0.06746006965637207
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 94,
+        "duration": 3.6925876140594482,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 281.468085106383,
+        "avg_search_time_p1": 0.0005721842989008478,
+        "avg_search_time_p2": 0.07778959071382563
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.5895278453826904,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 260.2549019607843,
+        "avg_search_time_p1": 0.0005493538052428002,
+        "avg_search_time_p2": 0.06967407581852932
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.410773992538452,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 245.48,
+        "avg_search_time_p1": 0.0006525945663452148,
+        "avg_search_time_p2": 0.06746018886566162
+      },
+      {
+        "game_number": 8,
+        "winner": 1,
+        "moves": 101,
+        "duration": 4.027704477310181,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 290.48,
+        "avg_search_time_p1": 0.0006669222139844708,
+        "avg_search_time_p2": 0.07973169803619384
+      },
+      {
+        "game_number": 9,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.320622444152832,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 237.84,
+        "avg_search_time_p1": 0.0005401022293988396,
+        "avg_search_time_p2": 0.06566729545593261
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 94,
+        "duration": 2.9074270725250244,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 212.91489361702128,
+        "avg_search_time_p1": 0.0005385824974547041,
+        "avg_search_time_p2": 0.061149602240704475
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.6069400310516357,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 261.625,
+        "avg_search_time_p1": 0.0005363176266352335,
+        "avg_search_time_p2": 0.07441477477550507
+      },
+      {
+        "game_number": 12,
+        "winner": 1,
+        "moves": 99,
+        "duration": 4.424883842468262,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 333.18367346938777,
+        "avg_search_time_p1": 0.000596151351928711,
+        "avg_search_time_p2": 0.08946909709852569
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.825571537017822,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 386.7647058823529,
+        "avg_search_time_p1": 0.0006931576074338427,
+        "avg_search_time_p2": 0.09370860398984422
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 94,
+        "duration": 4.824824810028076,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 450.82978723404256,
+        "avg_search_time_p1": 0.0005675630366548578,
+        "avg_search_time_p2": 0.1019484743158868
+      },
+      {
+        "game_number": 15,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.9779021739959717,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 343.3541666666667,
+        "avg_search_time_p1": 0.0007103731234868368,
+        "avg_search_time_p2": 0.08197376628716786
+      }
+    ],
+    "experiment_type": "depth_analysis",
+    "parameter_tested": "depth_5"
+  },
+  {
+    "config1_name": "balanced",
+    "config2_name": "aggressive",
+    "config1_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "config2_details": {
+      "type": "aggressive",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.0,
+        "territorial": 1.5,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 2.5,
+        "positional": 1.2
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 5,
+    "draws": 0,
+    "total_games": 10,
+    "avg_moves_per_game": 85.9,
+    "avg_game_duration": 4.047470283508301,
+    "min_moves": 52,
+    "max_moves": 102,
+    "std_moves": 16.33299319373723,
+    "avg_nodes_explored_p1": 168.12152093111493,
+    "avg_nodes_explored_p2": 211.05365058887713,
+    "avg_search_time_p1": 0.04367687442987244,
+    "avg_search_time_p2": 0.05284165607967503,
+    "total_experiment_time": 40.47973895072937,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 68,
+        "duration": 3.4848320484161377,
+        "avg_nodes_p1": 152.2058823529412,
+        "avg_nodes_p2": 277.2352941176471,
+        "avg_search_time_p1": 0.03835620599634507,
+        "avg_search_time_p2": 0.0641092482735129
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 78,
+        "duration": 3.9238085746765137,
+        "avg_nodes_p1": 226.53846153846155,
+        "avg_nodes_p2": 194.84615384615384,
+        "avg_search_time_p1": 0.050768558795635514,
+        "avg_search_time_p2": 0.049712767967810996
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 95,
+        "duration": 4.430143594741821,
+        "avg_nodes_p1": 145.20833333333334,
+        "avg_nodes_p2": 200.74468085106383,
+        "avg_search_time_p1": 0.040044039487838745,
+        "avg_search_time_p2": 0.05297646623976687
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 91,
+        "duration": 4.302496910095215,
+        "avg_nodes_p1": 150.56521739130434,
+        "avg_nodes_p2": 204.2,
+        "avg_search_time_p1": 0.04305380841960078,
+        "avg_search_time_p2": 0.05138755904303657
+      },
+      {
+        "game_number": 5,
+        "winner": 1,
+        "moves": 79,
+        "duration": 3.1125409603118896,
+        "avg_nodes_p1": 132.55,
+        "avg_nodes_p2": 191.69230769230768,
+        "avg_search_time_p1": 0.03377869725227356,
+        "avg_search_time_p2": 0.044929137596717246
+      },
+      {
+        "game_number": 6,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.6941118240356445,
+        "avg_nodes_p1": 116.43137254901961,
+        "avg_nodes_p2": 135.26,
+        "avg_search_time_p1": 0.03532585443234911,
+        "avg_search_time_p2": 0.03762768745422363
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 96,
+        "duration": 4.8279430866241455,
+        "avg_nodes_p1": 160.1875,
+        "avg_nodes_p2": 204.4375,
+        "avg_search_time_p1": 0.04243925213813782,
+        "avg_search_time_p2": 0.05793106059233347
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.326380491256714,
+        "avg_nodes_p1": 151.76470588235293,
+        "avg_nodes_p2": 156.35294117647058,
+        "avg_search_time_p1": 0.04154661589977788,
+        "avg_search_time_p2": 0.043015545489741305
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 52,
+        "duration": 3.693774461746216,
+        "avg_nodes_p1": 279.1923076923077,
+        "avg_nodes_p2": 343.53846153846155,
+        "avg_search_time_p1": 0.06656529353215145,
+        "avg_search_time_p2": 0.07538683597858135
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 97,
+        "duration": 4.678670883178711,
+        "avg_nodes_p1": 166.57142857142858,
+        "avg_nodes_p2": 202.22916666666666,
+        "avg_search_time_p1": 0.044890418344614456,
+        "avg_search_time_p2": 0.051340252161026
+      }
+    ],
+    "experiment_type": "timeout_analysis",
+    "parameter_tested": "timeout_1.0"
+  },
+  {
+    "config1_name": "balanced",
+    "config2_name": "aggressive",
+    "config1_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "config2_details": {
+      "type": "aggressive",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.0,
+        "territorial": 1.5,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 2.5,
+        "positional": 1.2
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 5,
+    "draws": 0,
+    "total_games": 10,
+    "avg_moves_per_game": 85.9,
+    "avg_game_duration": 4.037739825248718,
+    "min_moves": 52,
+    "max_moves": 102,
+    "std_moves": 16.33299319373723,
+    "avg_nodes_explored_p1": 168.12152093111493,
+    "avg_nodes_explored_p2": 211.05365058887713,
+    "avg_search_time_p1": 0.04357416380206198,
+    "avg_search_time_p2": 0.05263791908744915,
+    "total_experiment_time": 40.38497591018677,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 68,
+        "duration": 3.433457136154175,
+        "avg_nodes_p1": 152.2058823529412,
+        "avg_nodes_p2": 277.2352941176471,
+        "avg_search_time_p1": 0.0378954059937421,
+        "avg_search_time_p2": 0.06289437939138974
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 78,
+        "duration": 3.9053595066070557,
+        "avg_nodes_p1": 226.53846153846155,
+        "avg_nodes_p2": 194.84615384615384,
+        "avg_search_time_p1": 0.05045183499654134,
+        "avg_search_time_p2": 0.04954259823530148
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 95,
+        "duration": 4.464588403701782,
+        "avg_nodes_p1": 145.20833333333334,
+        "avg_nodes_p2": 200.74468085106383,
+        "avg_search_time_p1": 0.04058501124382019,
+        "avg_search_time_p2": 0.05331579167792137
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 91,
+        "duration": 4.272745370864868,
+        "avg_nodes_p1": 150.56521739130434,
+        "avg_nodes_p2": 204.2,
+        "avg_search_time_p1": 0.04249976510586946,
+        "avg_search_time_p2": 0.05130319595336914
+      },
+      {
+        "game_number": 5,
+        "winner": 1,
+        "moves": 79,
+        "duration": 3.097154378890991,
+        "avg_nodes_p1": 132.55,
+        "avg_nodes_p2": 191.69230769230768,
+        "avg_search_time_p1": 0.03379417061805725,
+        "avg_search_time_p2": 0.04467610212472769
+      },
+      {
+        "game_number": 6,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.7163307666778564,
+        "avg_nodes_p1": 116.43137254901961,
+        "avg_nodes_p2": 135.26,
+        "avg_search_time_p1": 0.03543637780582204,
+        "avg_search_time_p2": 0.03803985118865967
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 96,
+        "duration": 4.832920789718628,
+        "avg_nodes_p1": 160.1875,
+        "avg_nodes_p2": 204.4375,
+        "avg_search_time_p1": 0.042380000154177346,
+        "avg_search_time_p2": 0.05804338057835897
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.351376533508301,
+        "avg_nodes_p1": 151.76470588235293,
+        "avg_nodes_p2": 156.35294117647058,
+        "avg_search_time_p1": 0.041801681705549654,
+        "avg_search_time_p2": 0.043281358831069046
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 52,
+        "duration": 3.657054901123047,
+        "avg_nodes_p1": 279.1923076923077,
+        "avg_nodes_p2": 343.53846153846155,
+        "avg_search_time_p1": 0.06628099771646354,
+        "avg_search_time_p2": 0.07425884100107047
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 97,
+        "duration": 4.6464104652404785,
+        "avg_nodes_p1": 166.57142857142858,
+        "avg_nodes_p2": 202.22916666666666,
+        "avg_search_time_p1": 0.04461639268057687,
+        "avg_search_time_p2": 0.0510236918926239
+      }
+    ],
+    "experiment_type": "timeout_analysis",
+    "parameter_tested": "timeout_3.0"
+  },
+  {
+    "config1_name": "balanced",
+    "config2_name": "aggressive",
+    "config1_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "config2_details": {
+      "type": "aggressive",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.0,
+        "territorial": 1.5,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 2.5,
+        "positional": 1.2
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 5,
+    "draws": 0,
+    "total_games": 10,
+    "avg_moves_per_game": 85.9,
+    "avg_game_duration": 4.047259378433227,
+    "min_moves": 52,
+    "max_moves": 102,
+    "std_moves": 16.33299319373723,
+    "avg_nodes_explored_p1": 168.12152093111493,
+    "avg_nodes_explored_p2": 211.05365058887713,
+    "avg_search_time_p1": 0.04369437406754758,
+    "avg_search_time_p2": 0.052797952738435294,
+    "total_experiment_time": 40.480151891708374,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 68,
+        "duration": 3.5023133754730225,
+        "avg_nodes_p1": 152.2058823529412,
+        "avg_nodes_p2": 277.2352941176471,
+        "avg_search_time_p1": 0.0385047057095696,
+        "avg_search_time_p2": 0.06432653174680822
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 78,
+        "duration": 3.9200985431671143,
+        "avg_nodes_p1": 226.53846153846155,
+        "avg_nodes_p2": 194.84615384615384,
+        "avg_search_time_p1": 0.05046709989890074,
+        "avg_search_time_p2": 0.04991904283181215
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 95,
+        "duration": 4.447829008102417,
+        "avg_nodes_p1": 145.20833333333334,
+        "avg_nodes_p2": 200.74468085106383,
+        "avg_search_time_p1": 0.04033697644869486,
+        "avg_search_time_p2": 0.053203045053684964
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 91,
+        "duration": 4.2713024616241455,
+        "avg_nodes_p1": 150.56521739130434,
+        "avg_nodes_p2": 204.2,
+        "avg_search_time_p1": 0.0428013335103574,
+        "avg_search_time_p2": 0.0510309272342258
+      },
+      {
+        "game_number": 5,
+        "winner": 1,
+        "moves": 79,
+        "duration": 3.0955076217651367,
+        "avg_nodes_p1": 132.55,
+        "avg_nodes_p2": 191.69230769230768,
+        "avg_search_time_p1": 0.03362609744071961,
+        "avg_search_time_p2": 0.04470290281833746
+      },
+      {
+        "game_number": 6,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.679934024810791,
+        "avg_nodes_p1": 116.43137254901961,
+        "avg_nodes_p2": 135.26,
+        "avg_search_time_p1": 0.0352169158411961,
+        "avg_search_time_p2": 0.03745543003082275
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 96,
+        "duration": 4.855889797210693,
+        "avg_nodes_p1": 160.1875,
+        "avg_nodes_p2": 204.4375,
+        "avg_search_time_p1": 0.042559027671813965,
+        "avg_search_time_p2": 0.05839330951372782
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.36971116065979,
+        "avg_nodes_p1": 151.76470588235293,
+        "avg_nodes_p2": 156.35294117647058,
+        "avg_search_time_p1": 0.0421447987649955,
+        "avg_search_time_p2": 0.04333841566945992
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 52,
+        "duration": 3.6650211811065674,
+        "avg_nodes_p1": 279.1923076923077,
+        "avg_nodes_p2": 343.53846153846155,
+        "avg_search_time_p1": 0.06650290122398964,
+        "avg_search_time_p2": 0.0743713012108436
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 97,
+        "duration": 4.664986610412598,
+        "avg_nodes_p1": 166.57142857142858,
+        "avg_nodes_p2": 202.22916666666666,
+        "avg_search_time_p1": 0.04478388416523836,
+        "avg_search_time_p2": 0.051238621274630226
+      }
+    ],
+    "experiment_type": "timeout_analysis",
+    "parameter_tested": "timeout_5.0"
+  },
+  {
+    "config1_name": "balanced",
+    "config2_name": "aggressive",
+    "config1_details": {
+      "type": "balanced",
+      "depth": 3,
+      "timeout": 10.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.5,
+        "territorial": 2.0,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 1.5,
+        "positional": 1.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "config2_details": {
+      "type": "aggressive",
+      "depth": 3,
+      "timeout": 10.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.0,
+        "territorial": 1.5,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 2.5,
+        "positional": 1.2
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 5,
+    "player2_wins": 5,
+    "draws": 0,
+    "total_games": 10,
+    "avg_moves_per_game": 85.9,
+    "avg_game_duration": 4.046015214920044,
+    "min_moves": 52,
+    "max_moves": 102,
+    "std_moves": 16.33299319373723,
+    "avg_nodes_explored_p1": 168.12152093111493,
+    "avg_nodes_explored_p2": 211.05365058887713,
+    "avg_search_time_p1": 0.04365128724775069,
+    "avg_search_time_p2": 0.052741455904925454,
+    "total_experiment_time": 40.46622157096863,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 68,
+        "duration": 3.4522762298583984,
+        "avg_nodes_p1": 152.2058823529412,
+        "avg_nodes_p2": 277.2352941176471,
+        "avg_search_time_p1": 0.038180182961856615,
+        "avg_search_time_p2": 0.0632089236203362
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 78,
+        "duration": 3.922041893005371,
+        "avg_nodes_p1": 226.53846153846155,
+        "avg_nodes_p2": 194.84615384615384,
+        "avg_search_time_p1": 0.05064523525727101,
+        "avg_search_time_p2": 0.04980348318051069
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 95,
+        "duration": 4.4241485595703125,
+        "avg_nodes_p1": 145.20833333333334,
+        "avg_nodes_p2": 200.74468085106383,
+        "avg_search_time_p1": 0.04000753660996755,
+        "avg_search_time_p2": 0.05299265333946715
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 91,
+        "duration": 4.29399847984314,
+        "avg_nodes_p1": 150.56521739130434,
+        "avg_nodes_p2": 204.2,
+        "avg_search_time_p1": 0.04271430036296015,
+        "avg_search_time_p2": 0.051545572280883786
+      },
+      {
+        "game_number": 5,
+        "winner": 1,
+        "moves": 79,
+        "duration": 3.0884273052215576,
+        "avg_nodes_p1": 132.55,
+        "avg_nodes_p2": 191.69230769230768,
+        "avg_search_time_p1": 0.03358847498893738,
+        "avg_search_time_p2": 0.044637514994694635
+      },
+      {
+        "game_number": 6,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.6887736320495605,
+        "avg_nodes_p1": 116.43137254901961,
+        "avg_nodes_p2": 135.26,
+        "avg_search_time_p1": 0.03508238698921952,
+        "avg_search_time_p2": 0.03780592441558838
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 96,
+        "duration": 4.861525774002075,
+        "avg_nodes_p1": 160.1875,
+        "avg_nodes_p2": 204.4375,
+        "avg_search_time_p1": 0.042781089742978416,
+        "avg_search_time_p2": 0.05816332995891571
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 4.349496603012085,
+        "avg_nodes_p1": 151.76470588235293,
+        "avg_nodes_p2": 156.35294117647058,
+        "avg_search_time_p1": 0.041810161927167105,
+        "avg_search_time_p2": 0.04312829877815995
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 52,
+        "duration": 3.6607863903045654,
+        "avg_nodes_p1": 279.1923076923077,
+        "avg_nodes_p2": 343.53846153846155,
+        "avg_search_time_p1": 0.06646385559668908,
+        "avg_search_time_p2": 0.07421951110546406
+      },
+      {
+        "game_number": 10,
+        "winner": 1,
+        "moves": 97,
+        "duration": 4.718677282333374,
+        "avg_nodes_p1": 166.57142857142858,
+        "avg_nodes_p2": 202.22916666666666,
+        "avg_search_time_p1": 0.04523964804046008,
+        "avg_search_time_p2": 0.05190934737523397
+      }
+    ],
+    "experiment_type": "timeout_analysis",
+    "parameter_tested": "timeout_10.0"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "material_only",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "material_only",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "critical_mass"
+      ],
+      "weights": {
+        "material": 4.0,
+        "critical_mass": 2.0
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 3,
+    "player2_wins": 12,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.53333333333333,
+    "avg_game_duration": 1.686602242787679,
+    "min_moves": 96,
+    "max_moves": 104,
+    "std_moves": 1.8464895909600492,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 229.9458890940992,
+    "avg_search_time_p1": 0.0005563221321720369,
+    "avg_search_time_p2": 0.033240938295291685,
+    "total_experiment_time": 25.3096182346344,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.5413243770599365,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 210.64,
+        "avg_search_time_p1": 0.00045703887939453126,
+        "avg_search_time_p2": 0.030217289924621582
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.4421186447143555,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 193.78,
+        "avg_search_time_p1": 0.0006156110763549805,
+        "avg_search_time_p2": 0.028072457313537597
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 99,
+        "duration": 1.8964447975158691,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 271.2448979591837,
+        "avg_search_time_p1": 0.0005369329452514648,
+        "avg_search_time_p2": 0.037938443981871316
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.9662156105041504,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 280.8,
+        "avg_search_time_p1": 0.0005784749984741211,
+        "avg_search_time_p2": 0.03858415126800537
+      },
+      {
+        "game_number": 5,
+        "winner": 1,
+        "moves": 99,
+        "duration": 1.426671028137207,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 187.10204081632654,
+        "avg_search_time_p1": 0.0004038429260253906,
+        "avg_search_time_p2": 0.028436563452895806
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.171612024307251,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 140.34,
+        "avg_search_time_p1": 0.0005361080169677734,
+        "avg_search_time_p2": 0.022712607383728028
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.4143857955932617,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 183.16,
+        "avg_search_time_p1": 0.0005268001556396484,
+        "avg_search_time_p2": 0.02747542381286621
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 98,
+        "duration": 2.2017369270324707,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 315.46938775510205,
+        "avg_search_time_p1": 0.0005571209654516103,
+        "avg_search_time_p2": 0.044207606996808736
+      },
+      {
+        "game_number": 9,
+        "winner": 1,
+        "moves": 99,
+        "duration": 2.119391918182373,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 309.0204081632653,
+        "avg_search_time_p1": 0.0005942773818969726,
+        "avg_search_time_p2": 0.04249278379946339
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 98,
+        "duration": 1.7226169109344482,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 242.26530612244898,
+        "avg_search_time_p1": 0.00044536104007643096,
+        "avg_search_time_p2": 0.03444256101335798
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 96,
+        "duration": 1.516782283782959,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 219.29166666666666,
+        "avg_search_time_p1": 0.0006204992532730103,
+        "avg_search_time_p2": 0.03087163468201955
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 98,
+        "duration": 1.7028656005859375,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 232.6326530612245,
+        "avg_search_time_p1": 0.0005926745278494698,
+        "avg_search_time_p2": 0.034015572800928234
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 102,
+        "duration": 1.5521893501281738,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 186.86274509803923,
+        "avg_search_time_p1": 0.0006233664119944853,
+        "avg_search_time_p2": 0.02963407834370931
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 100,
+        "duration": 1.749028205871582,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 242.06,
+        "avg_search_time_p1": 0.0005949926376342773,
+        "avg_search_time_p2": 0.034162774085998535
+      },
+      {
+        "game_number": 15,
+        "winner": 2,
+        "moves": 104,
+        "duration": 1.87565016746521,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 234.51923076923077,
+        "avg_search_time_p1": 0.0006617307662963867,
+        "avg_search_time_p2": 0.03535012556956364
+      }
+    ],
+    "experiment_type": "heuristic_analysis",
+    "parameter_tested": "material_only"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "tactical",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "tactical",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.2,
+        "territorial": 1.8,
+        "critical_mass": 3.2,
+        "mobility": 2.2,
+        "chain_potential": 2.8,
+        "positional": 1.3
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 4,
+    "player2_wins": 11,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.46666666666667,
+    "avg_game_duration": 3.022007703781128,
+    "min_moves": 94,
+    "max_moves": 105,
+    "std_moves": 3.1592645316516914,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 220.52232198007408,
+    "avg_search_time_p1": 0.0005958789109109194,
+    "avg_search_time_p2": 0.0600882562268436,
+    "total_experiment_time": 45.34118938446045,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 100,
+        "duration": 2.8575756549835205,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 224.56,
+        "avg_search_time_p1": 0.0005398845672607422,
+        "avg_search_time_p2": 0.056335372924804686
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 94,
+        "duration": 3.3938543796539307,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 252.4468085106383,
+        "avg_search_time_p1": 0.0007346589514549743,
+        "avg_search_time_p2": 0.07131400514156261
+      },
+      {
+        "game_number": 3,
+        "winner": 1,
+        "moves": 99,
+        "duration": 2.815275192260742,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 203.48979591836735,
+        "avg_search_time_p1": 0.0005569982528686523,
+        "avg_search_time_p2": 0.056618393683920104
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 94,
+        "duration": 2.486023426055908,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 192.5531914893617,
+        "avg_search_time_p1": 0.0006648327441925698,
+        "avg_search_time_p2": 0.052090254235774916
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 100,
+        "duration": 2.9780666828155518,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 218.74,
+        "avg_search_time_p1": 0.0004947996139526368,
+        "avg_search_time_p2": 0.05882469654083252
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 102,
+        "duration": 2.886338949203491,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 197,
+        "avg_search_time_p1": 0.0006454832413617303,
+        "avg_search_time_p2": 0.05567266894321816
+      },
+      {
+        "game_number": 7,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.440464496612549,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 259.18,
+        "avg_search_time_p1": 0.0005075604307885264,
+        "avg_search_time_p2": 0.06814917087554932
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.5120856761932373,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 245.7058823529412,
+        "avg_search_time_p1": 0.000665734795963063,
+        "avg_search_time_p2": 0.06804066078335631
+      },
+      {
+        "game_number": 9,
+        "winner": 1,
+        "moves": 105,
+        "duration": 3.6315436363220215,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 278.6923076923077,
+        "avg_search_time_p1": 0.0006453855982366598,
+        "avg_search_time_p2": 0.06894663205513588
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.910250186920166,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 321.1458333333333,
+        "avg_search_time_p1": 0.0006745209296544393,
+        "avg_search_time_p2": 0.08064153293768565
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 102,
+        "duration": 2.7801198959350586,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 190.90196078431373,
+        "avg_search_time_p1": 0.0004745371201459099,
+        "avg_search_time_p2": 0.05375227741166657
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 98,
+        "duration": 2.266082525253296,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 154.16326530612244,
+        "avg_search_time_p1": 0.0005892150256098534,
+        "avg_search_time_p2": 0.045430616456635146
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.7851109504699707,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 269.92,
+        "avg_search_time_p1": 0.0005967283248901367,
+        "avg_search_time_p2": 0.0748840856552124
+      },
+      {
+        "game_number": 14,
+        "winner": 1,
+        "moves": 97,
+        "duration": 1.903127908706665,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 121.70833333333333,
+        "avg_search_time_p1": 0.0006732648732710858,
+        "avg_search_time_p2": 0.03874331712722778
+      },
+      {
+        "game_number": 15,
+        "winner": 2,
+        "moves": 102,
+        "duration": 2.6841959953308105,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 177.62745098039215,
+        "avg_search_time_p1": 0.0004745791940128102,
+        "avg_search_time_p2": 0.0518801586300719
+      }
+    ],
+    "experiment_type": "heuristic_analysis",
+    "parameter_tested": "tactical"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "defensive",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "defensive",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 3.0,
+        "territorial": 3.0,
+        "critical_mass": 2.0,
+        "mobility": 2.2,
+        "chain_potential": 1.5,
+        "positional": 2.5
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 1,
+    "player2_wins": 14,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 99.66666666666667,
+    "avg_game_duration": 4.360298140843709,
+    "min_moves": 92,
+    "max_moves": 104,
+    "std_moves": 3.415650255319866,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 322.2414230390085,
+    "avg_search_time_p1": 0.0005589237276405008,
+    "avg_search_time_p2": 0.08698916078478916,
+    "total_experiment_time": 65.41559171676636,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 98,
+        "duration": 4.536900043487549,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 348.38775510204084,
+        "avg_search_time_p1": 0.0006595047152772242,
+        "avg_search_time_p2": 0.0918481447258774
+      },
+      {
+        "game_number": 2,
+        "winner": 2,
+        "moves": 102,
+        "duration": 5.080254554748535,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 351.29411764705884,
+        "avg_search_time_p1": 0.0006830785788741766,
+        "avg_search_time_p2": 0.09885924002703499
+      },
+      {
+        "game_number": 3,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.703916072845459,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 263.8235294117647,
+        "avg_search_time_p1": 0.0005641310822729971,
+        "avg_search_time_p2": 0.07191217646879308
+      },
+      {
+        "game_number": 4,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.410609006881714,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 319.96,
+        "avg_search_time_p1": 0.0004837799072265625,
+        "avg_search_time_p2": 0.08750581264495849
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.2769815921783447,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 209.94117647058823,
+        "avg_search_time_p1": 0.0006830552045036765,
+        "avg_search_time_p2": 0.0635218573551552
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.463473320007324,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 344.72,
+        "avg_search_time_p1": 0.0005232954025268555,
+        "avg_search_time_p2": 0.08856748580932618
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.117467164993286,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 313.8,
+        "avg_search_time_p1": 0.0004645967483520508,
+        "avg_search_time_p2": 0.08180422306060792
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 94,
+        "duration": 4.512973308563232,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 368.1914893617021,
+        "avg_search_time_p1": 0.0005813202959425906,
+        "avg_search_time_p2": 0.09533228265478257
+      },
+      {
+        "game_number": 9,
+        "winner": 2,
+        "moves": 96,
+        "duration": 5.105298042297363,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 403.25,
+        "avg_search_time_p1": 0.0005980084339777628,
+        "avg_search_time_p2": 0.1056295782327652
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 92,
+        "duration": 4.259922981262207,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 363.5217391304348,
+        "avg_search_time_p1": 0.00042787842128587806,
+        "avg_search_time_p2": 0.09198996813400932
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 104,
+        "duration": 5.04457426071167,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 339.6730769230769,
+        "avg_search_time_p1": 0.0005058921300447904,
+        "avg_search_time_p2": 0.0963502572132991
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 104,
+        "duration": 4.500673055648804,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 306.53846153846155,
+        "avg_search_time_p1": 0.0005924380742586576,
+        "avg_search_time_p2": 0.08580469168149508
+      },
+      {
+        "game_number": 13,
+        "winner": 2,
+        "moves": 100,
+        "duration": 3.3082714080810547,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 241.36,
+        "avg_search_time_p1": 0.0005373573303222657,
+        "avg_search_time_p2": 0.06544180870056153
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 100,
+        "duration": 4.18330192565918,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 288.5,
+        "avg_search_time_p1": 0.000563502311706543,
+        "avg_search_time_p2": 0.08292013168334961
+      },
+      {
+        "game_number": 15,
+        "winner": 1,
+        "moves": 101,
+        "duration": 4.899855375289917,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 370.66,
+        "avg_search_time_p1": 0.0005160172780354818,
+        "avg_search_time_p2": 0.09734975337982178
+      }
+    ],
+    "experiment_type": "heuristic_analysis",
+    "parameter_tested": "defensive"
+  },
+  {
+    "config1_name": "random",
+    "config2_name": "aggressive",
+    "config1_details": {
+      "type": "random",
+      "depth": 0,
+      "timeout": 0,
+      "heuristics": [],
+      "weights": {}
+    },
+    "config2_details": {
+      "type": "aggressive",
+      "depth": 3,
+      "timeout": 5.0,
+      "explosion_limit": 50,
+      "enabled_heuristics": [
+        "material",
+        "territorial",
+        "critical_mass",
+        "mobility",
+        "chain_potential",
+        "positional"
+      ],
+      "weights": {
+        "material": 2.0,
+        "territorial": 1.5,
+        "critical_mass": 3.0,
+        "mobility": 1.8,
+        "chain_potential": 2.5,
+        "positional": 1.2
+      },
+      "use_transposition_table": true,
+      "use_move_ordering": true
+    },
+    "player1_wins": 4,
+    "player2_wins": 11,
+    "draws": 0,
+    "total_games": 15,
+    "avg_moves_per_game": 98.93333333333334,
+    "avg_game_duration": 3.23633181254069,
+    "min_moves": 88,
+    "max_moves": 105,
+    "std_moves": 4.527166674117278,
+    "avg_nodes_explored_p1": 1,
+    "avg_nodes_explored_p2": 245.13321436371007,
+    "avg_search_time_p1": 0.0005977786835586076,
+    "avg_search_time_p2": 0.06516003952903213,
+    "total_experiment_time": 48.55304431915283,
+    "individual_games": [
+      {
+        "game_number": 1,
+        "winner": 2,
+        "moves": 104,
+        "duration": 2.5772438049316406,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 175.15384615384616,
+        "avg_search_time_p1": 0.0005810398321885329,
+        "avg_search_time_p2": 0.04874788797818697
+      },
+      {
+        "game_number": 2,
+        "winner": 1,
+        "moves": 99,
+        "duration": 3.1496517658233643,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 225.51020408163265,
+        "avg_search_time_p1": 0.0005957603454589844,
+        "avg_search_time_p2": 0.063526168161509
+      },
+      {
+        "game_number": 3,
+        "winner": 2,
+        "moves": 102,
+        "duration": 3.2796430587768555,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 242.3921568627451,
+        "avg_search_time_p1": 0.0005699840246462354,
+        "avg_search_time_p2": 0.06357898899153167
+      },
+      {
+        "game_number": 4,
+        "winner": 1,
+        "moves": 105,
+        "duration": 3.132913589477539,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 245.21153846153845,
+        "avg_search_time_p1": 0.0005622719818691037,
+        "avg_search_time_p2": 0.059520790210137
+      },
+      {
+        "game_number": 5,
+        "winner": 2,
+        "moves": 98,
+        "duration": 3.66815447807312,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 284.3673469387755,
+        "avg_search_time_p1": 0.00047745510023467397,
+        "avg_search_time_p2": 0.0741754405352534
+      },
+      {
+        "game_number": 6,
+        "winner": 2,
+        "moves": 102,
+        "duration": 2.140275239944458,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 131.58823529411765,
+        "avg_search_time_p1": 0.0006233710868685853,
+        "avg_search_time_p2": 0.04122250220354866
+      },
+      {
+        "game_number": 7,
+        "winner": 2,
+        "moves": 88,
+        "duration": 3.258491039276123,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 289.1363636363636,
+        "avg_search_time_p1": 0.0006402134895324707,
+        "avg_search_time_p2": 0.07332403551448476
+      },
+      {
+        "game_number": 8,
+        "winner": 2,
+        "moves": 94,
+        "duration": 4.0540266036987305,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 327.40425531914894,
+        "avg_search_time_p1": 0.000634954330768991,
+        "avg_search_time_p2": 0.08542794369636698
+      },
+      {
+        "game_number": 9,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.351407766342163,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 255,
+        "avg_search_time_p1": 0.0006743973376704197,
+        "avg_search_time_p2": 0.06621858596801758
+      },
+      {
+        "game_number": 10,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.421719789505005,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 262.0625,
+        "avg_search_time_p1": 0.0005660206079483032,
+        "avg_search_time_p2": 0.07052598893642426
+      },
+      {
+        "game_number": 11,
+        "winner": 2,
+        "moves": 96,
+        "duration": 3.501164197921753,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 265.75,
+        "avg_search_time_p1": 0.0004969437917073568,
+        "avg_search_time_p2": 0.07224192221959432
+      },
+      {
+        "game_number": 12,
+        "winner": 2,
+        "moves": 104,
+        "duration": 2.7783596515655518,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 198,
+        "avg_search_time_p1": 0.0007011615313016451,
+        "avg_search_time_p2": 0.05255476328042837
+      },
+      {
+        "game_number": 13,
+        "winner": 1,
+        "moves": 101,
+        "duration": 3.3602960109710693,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 249,
+        "avg_search_time_p1": 0.0006326460370830461,
+        "avg_search_time_p2": 0.06639950275421143
+      },
+      {
+        "game_number": 14,
+        "winner": 2,
+        "moves": 98,
+        "duration": 4.191007614135742,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 322.7551020408163,
+        "avg_search_time_p1": 0.0006001141606544962,
+        "avg_search_time_p2": 0.08480725969587054
+      },
+      {
+        "game_number": 15,
+        "winner": 2,
+        "moves": 96,
+        "duration": 2.6806225776672363,
+        "avg_nodes_p1": 1,
+        "avg_nodes_p2": 203.66666666666666,
+        "avg_search_time_p1": 0.0006103465954462687,
+        "avg_search_time_p2": 0.05512881278991699
+      }
+    ],
+    "experiment_type": "heuristic_analysis",
+    "parameter_tested": "aggressive"
+  }
+]

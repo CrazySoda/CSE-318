@@ -85,6 +85,7 @@ def save_ai_config(config: ai.AIConfig):
     try:
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             f.write(f"depth={config.depth}\n")
+            f.write(f"transposition_table={config.use_transposition_table}\n")
             f.write(f"move_ordering={config.use_move_ordering}\n")
             
             for heuristic, enabled in config.enabled_heuristics.items():
@@ -163,6 +164,9 @@ def main():
             print(f"  Time taken: {end_time - start_time:.3f}s")
             print(f"  Nodes explored: {stats['nodes_explored']}")
             print(f"  Alpha-beta cutoffs: {stats['alpha_beta_cutoffs']}")
+            
+            if 'hit_rate_percent' in stats:
+                print(f"  Table hit rate: {stats['hit_rate_percent']:.1f}%")
 
             # Save result WITH move coordinates
             write_state_with_move("AI Move:", state, (r, c))
