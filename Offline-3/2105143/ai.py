@@ -83,7 +83,7 @@ class Heuristics:
             for c in range(state.cols):
                 cell = state.board[r][c]
                 if cell.owner:
-                    # FIXED: Higher weight for corners (easier to control), lower for center
+                    # Higher weight for corners (easier to control), lower for center
                     if (r in (0, state.rows-1)) and (c in (0, state.cols-1)):
                         cell_weight = 4  # corners are valuable (critical mass = 2)
                     elif r in (0, state.rows-1) or c in (0, state.cols-1):
