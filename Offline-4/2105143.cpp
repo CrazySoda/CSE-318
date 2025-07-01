@@ -1,4 +1,4 @@
-//speedups reduce the accuracy by 10~20% but makes the process a lot faster
+//speedups reduce the accuracy by 10~20% but makes the process exponentially faster
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -427,64 +427,7 @@ public:
     {
         return getEntropy(table) - getEntropyAttr(table, attributeIndex);
     }
-    // check the test data against the decision tree
-    string guess(vector<string> row)
-    {
-        string label = "";
-        int leafNode = dfs(row, 0);
-        if (leafNode == -1)
-        {
-            return "dfs failed";
-        }
-        label = tree[leafNode].label;
-        return label;
-    }
-    // helper for the test guess
-    int dfs(vector<string> &row, int here)
-    {
-        if (tree[here].isLeaf)
-        {
-            return here;
-        }
-
-        int criteriaAttributeIndex = tree[here].criteriaAttributeIndex;
-
-        if (tree[here].isNumerical)
-        {
-            // Handle numerical attributes
-            double value = stod(row[criteriaAttributeIndex]);
-            if (value <= tree[here].threshold)
-            {
-                // Go to left child (first child)
-                if (tree[here].children.size() > 0)
-                {
-                    return dfs(row, tree[here].children[0]);
-                }
-            }
-            else
-            {
-                // Go to right child (second child)
-                if (tree[here].children.size() > 1)
-                {
-                    return dfs(row, tree[here].children[1]);
-                }
-            }
-        }
-        else
-        {
-            // Handle categorical attributes
-            for (int i = 0; i < tree[here].children.size(); i++)
-            {
-                int next = tree[here].children[i];
-                if (row[criteriaAttributeIndex] == tree[next].attributeValue)
-                {
-                    return dfs(row, next);
-                }
-            }
-        }
-
-        return -1; // No matching path found
-    }
+    
     // helper to check if the leaves all have the same label
     bool isLeafNode(Table table)
     {
@@ -638,7 +581,7 @@ public:
                 }
             }
         }*/
-        //speedup3->try at max 100 thresholds
+        //speedup3->try at max 100 thresholds by adjusting the step size to only check the 100 thresholds
         int step = max(1, (int)(values.size() / 100));
         for (int i = 0; i < values.size() - step; i+=step)
         {
@@ -786,7 +729,64 @@ public:
         }
         return {majorLabel, majorCount};
     }
+    // check the test data against the decision tree
+    string guess(vector<string> row)
+    {
+        string label = "";
+        int leafNode = dfs(row, 0);
+        if (leafNode == -1)
+        {
+            return "dfs failed";
+        }
+        label = tree[leafNode].label;
+        return label;
+    }
+    // helper for the test guess
+    int dfs(vector<string> &row, int here)
+    {
+        if (tree[here].isLeaf)
+        {
+            return here;
+        }
 
+        int criteriaAttributeIndex = tree[here].criteriaAttributeIndex;
+
+        if (tree[here].isNumerical)
+        {
+            // Handle numerical attributes
+            double value = stod(row[criteriaAttributeIndex]);
+            if (value <= tree[here].threshold)
+            {
+                // Go to left child (first child)
+                if (tree[here].children.size() > 0)
+                {
+                    return dfs(row, tree[here].children[0]);
+                }
+            }
+            else
+            {
+                // Go to right child (second child)
+                if (tree[here].children.size() > 1)
+                {
+                    return dfs(row, tree[here].children[1]);
+                }
+            }
+        }
+        else
+        {
+            // Handle categorical attributes
+            for (int i = 0; i < tree[here].children.size(); i++)
+            {
+                int next = tree[here].children[i];
+                if (row[criteriaAttributeIndex] == tree[next].attributeValue)
+                {
+                    return dfs(row, next);
+                }
+            }
+        }
+
+        return -1; // No matching path found
+    }
     // print the decision tree
     void printTree()
     {
