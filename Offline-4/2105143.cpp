@@ -1,3 +1,4 @@
+//speedups reduce the accuracy by 10~20% but makes the process a lot faster
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -34,10 +35,10 @@ public:
     // store the unique values in each column
     vector<vector<string>> attributeValueList;
     vector<bool> isNumericalAttribute;
-    //Use reference instead of copying
+    // Use reference instead of copying
     vector<int> rowIndices;
     Table *originalTable;
-    //helpers for getting light copy
+    // helpers for getting light copy
     Table(Table *original = nullptr) : originalTable(original) {}
     vector<string> &getRowData(int i)
     {
@@ -150,9 +151,12 @@ class DecisionTree
 public:
     Table initialTable;
     vector<Node> tree;
+    // function pointer of gain function
     typedef double (DecisionTree::*GainFunction)(Table, int);
     GainFunction currentGainFunction;
+    // maxdepth during runtime
     int maxDepth;
+    // setter for gain method
     void setGainMethod(string method)
     {
         if (method == "IG")
@@ -180,12 +184,11 @@ public:
     DecisionTree(Table table, string gainMethod = "IG", int maxDepth = 0)
     {
         initialTable = table;
-        initialTable.extractAttributeValue();\
-        //added for choosing gain method when running
+        initialTable.extractAttributeValue(); // added for choosing gain method when running
         setGainMethod(gainMethod);
-        //added for implementing maxDepth
+        // added for implementing maxDepth
         this->maxDepth = maxDepth;
-        maxDepth == 0 ? cout << "MaxDepth:Unlimited" : cout << "MaxDepth: " << maxDepth << endl;
+        maxDepth == 0 ? cout << "MaxDepth:Unlimited" << endl : cout << "MaxDepth: " << maxDepth << endl;
         Node root;
         root.treeIndex = 0;
         tree.push_back(root);
@@ -194,6 +197,22 @@ public:
 
     void run(Table table, int nodeIndex, int currentDepth)
     {
+        // speedup1->Don't split tiny groups any further
+        if (table.getDataSize() < 50)
+        { 
+            tree[nodeIndex].isLeaf = true;
+            tree[nodeIndex].label = getMajorityLabel(table).first;
+            return;
+        }
+        // speedup2->DOnt split if 95% pure
+        auto majority = getMajorityLabel(table);
+        double purity = (double)majority.second / table.getDataSize();
+        if (purity >= 0.95)
+        { 
+            tree[nodeIndex].isLeaf = true;
+            tree[nodeIndex].label = majority.first;
+            return;
+        }
         // checking for max depth
         if (maxDepth > 0 && currentDepth >= maxDepth)
         {
@@ -230,8 +249,8 @@ public:
             rightTable.attributeName = table.attributeName;
             for (int i = 0; i < table.getDataSize(); i++)
             {
-                //implementing reference copy only not the actual data
-                // double value = stod(table.data[i][selectedAttributeIndex]);
+                // implementing reference copy only not the actual data
+                //  double value = stod(table.data[i][selectedAttributeIndex]);
                 vector<string> &row = table.getRowData(i);
                 double value = stod(row[selectedAttributeIndex]);
                 if (value <= tree[nodeIndex].threshold)
@@ -520,44 +539,7 @@ public:
 
         return make_pair(bestAttr, bestThreshold);
     }
-
-    pair<double, double> getBestThreshold(Table table, int attr)
-    {
-        vector<pair<double, string>> values;
-
-        for (int i = 0; i < table.getDataSize(); i++)
-        {
-            vector<string> &row = table.getRowData(i);
-            double val = stod(row[attr]);
-            string label = row.back();
-            /*double val = stod(table.data[i][attr]);
-            string label = table.data[i].back();*/
-            values.push_back(make_pair(val, label));
-        }
-        // sort all the different values of the numerical datas
-        sort(values.begin(), values.end());
-
-        double bestThreshold = 0.0;
-        double bestGain = 0.0;
-
-        for (int i = 0; i < values.size() - 1; i++)
-        {
-            if (values[i].first != values[i + 1].first)
-            {
-                double threshold = (values[i].first + values[i + 1].first) / 2.0;
-                double gain = calcThresholdGain(table, attr, threshold);
-
-                if (gain > bestGain)
-                {
-                    bestGain = gain;
-                    bestThreshold = threshold;
-                }
-            }
-        }
-
-        return make_pair(bestThreshold, bestGain);
-    }
-
+    // IV
     double getIntrinsicValue(Table table, int attributeIndex)
     {
         double ret = 0.0;
@@ -621,6 +603,62 @@ public:
         return (ig / normalizationFactor) * sizePenalty;
     }
 
+    // For splitting the numerical values src:https://medium.com/data-science/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e
+    pair<double, double> getBestThreshold(Table table, int attr)
+    {
+        vector<pair<double, string>> values;
+
+        for (int i = 0; i < table.getDataSize(); i++)
+        {
+            vector<string> &row = table.getRowData(i);
+            double val = stod(row[attr]);
+            string label = row.back();
+            /*double val = stod(table.data[i][attr]);
+            string label = table.data[i].back();*/
+            values.push_back(make_pair(val, label));
+        }
+        // sort all the different values of the numerical datas
+        sort(values.begin(), values.end());
+
+        double bestThreshold = 0.0;
+        double bestGain = 0.0;
+        //this is for smaller data like iris.csv
+        /*for (int i = 0; i < values.size() - i; i++)
+        {
+            if (values[i].first != values[i + 1].first)
+            {
+                // avg of two different unique numerical values and then find the information gain
+                double threshold = (values[i].first + values[i + 1].first) / 2.0;
+                double gain = calcThresholdGain(table, attr, threshold);
+
+                if (gain > bestGain)
+                {
+                    bestGain = gain;
+                    bestThreshold = threshold;
+                }
+            }
+        }*/
+        //speedup3->try at max 100 thresholds
+        int step = max(1, (int)(values.size() / 100));
+        for (int i = 0; i < values.size() - step; i+=step)
+        {
+            if (values[i].first != values[i + step].first)
+            {
+                // avg of two different unique numerical values and then find the information gain
+                double threshold = (values[i].first + values[i + step].first) / 2.0;
+                double gain = calcThresholdGain(table, attr, threshold);
+
+                if (gain > bestGain)
+                {
+                    bestGain = gain;
+                    bestThreshold = threshold;
+                }
+            }
+        }
+
+        return make_pair(bestThreshold, bestGain);
+    }
+    // calculate the threshold gain
     double calcThresholdGain(Table table, int attr, double threshold)
     {
         Table left, right;
@@ -633,15 +671,15 @@ public:
             if (value <= threshold)
             {
                 left.data.push_back(row);
-                //left.data.push_back(table.data[i]);
+                // left.data.push_back(table.data[i]);
             }
             else
             {
                 right.data.push_back(row);
-                //right.data.push_back(table.data[i]);
+                // right.data.push_back(table.data[i]);
             }
         }
-
+        //to stop the math error divide by 0.0
         if (left.getDataSize() == 0 || right.getDataSize() == 0)
             return 0.0;
 
@@ -654,7 +692,7 @@ public:
         return totalEntropy - (leftWeight * getEntropy(left) + rightWeight * getEntropy(right));*/
         return calcGainForBinarySplit(table, left, right);
     }
-
+    // for calculating the information gain for splitting the numerical values
     double calcGainForBinarySplit(Table table, Table left, Table right)
     {
         // Determine which gain function to use
@@ -676,7 +714,7 @@ public:
             return calcInfoGainForBinarySplit(table, left, right);
         }
     }
-
+    //same info gain logic for the numerical binary split
     double calcInfoGainForBinarySplit(Table table, Table left, Table right)
     {
         double totalEntropy = getEntropy(table);
@@ -756,7 +794,7 @@ public:
         cout << "========================" << endl;
         printTreeHelper(0, "");
     }
-
+    // print the table with the if-else logic
     void printTreeHelper(int nodeIndex, string indent)
     {
         if (tree[nodeIndex].isLeaf)
@@ -782,6 +820,7 @@ public:
             {
                 int childIndex = tree[nodeIndex].children[i];
                 string attributeValue = tree[childIndex].attributeValue;
+                //multiple branches for categorical data 
                 cout << indent << "  WHEN " << attributeName << " = " << attributeValue << ":" << endl;
                 printTreeHelper(childIndex, indent + "    ");
             }
